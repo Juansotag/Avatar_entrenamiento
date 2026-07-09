@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Revisión de sesión — Simulador UniSabana GovLab" />
+  <title>Revisión de sesión — UniSabana GovLab</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-brand">
+        <img src="/static/GovLab_blanco.png" alt="GovLab Logo" class="header-logo" />
+        <div class="header-divider"></div>
+        <span class="header-title">Revisión de la negociación</span>
+      </div>
+      <nav class="header-nav">
+        <a href="/index.html" class="nav-pill">← Inicio</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Encabezado del caso -->
+    <div class="card">
+      <div class="card-header-row">
+        <h2 id="case-title"></h2>
+        <button class="secondary" id="print-btn" onclick="window.print()"> Descargar informe (PDF)</button>
+      </div>
+      <p id="scenario-text" style="color: var(--text-secondary);"></p>
+      <p class="status-line" id="session-meta"></p>
+    </div>
+
+    <!-- Explicación de Métricas y Calificación -->
+    <div class="card" id="explainer-card">
+      <div class="card-header-row">
+        <h2>¿Cómo funcionan las métricas y la calificación?</h2>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 0.75rem;">
+        Este sistema evalúa tu desempeño en dos dimensiones clave:
+      </p>
+      <ul style="margin-left: 1.5rem; color: var(--text-secondary); line-height: 1.6;">
+        <li><strong>Calificación de Negociación (0-100):</strong> Evaluada por inteligencia artificial (Claude)
+          analizando la transcripción de tus argumentos, propuestas y reacciones frente a las reglas y perfil del
+          avatar. Busca el uso de cifras, respuesta a objeciones y neutralización de líneas rojas.</li>
+        <li><strong>Lenguaje No Verbal:</strong> Calculado en tiempo real a través de tu cámara mediante visión por
+          computadora (MediaPipe). Analiza:
+          <ul style="margin-left: 1.25rem; margin-top: 0.25rem;">
+            <li><strong>Tiempo mirando a cámara:</strong> % de cuadros donde tu rostro está alineado directamente hacia
+              la cámara (desviación horizontal y vertical menor a 15°).</li>
+            <li><strong>Desviaciones (Yaw/Pitch):</strong> Promedio en grados de cuánto giras la cabeza a los lados
+              (horizontal/yaw) o arriba/abajo (vertical/pitch).</li>
+            <li><strong>Métricas de emociones:</strong> Clasificación de expresiones faciales en felicidad, enojo,
+              tristeza y miedo a partir de blendshapes musculares faciales del modelo 3D.</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Informe de Coaching de Claude -->
+    <div class="card" id="coaching-card" style="display:none;">
+      <div class="card-header-row">
+        <h2>Informe de Coaching</h2>
+      </div>
+      <p class="status-line" style="margin-bottom:1.25rem;">
+        Análisis generado por Claude con razonamiento extendido sobre tu desempeño negociador.
+      </p>
+
+      <div class="coaching-header">
+        <div class="score-circle">
+          <span class="score-value" id="score-value">–</span>
+          <span class="score-label">/ 100</span>
+        </div>
+        <div class="coaching-summary">
+          <span class="resultado-badge" id="resultado-badge"></span>
+          <h3>Resumen ejecutivo</h3>
+          <p id="resumen-ejecutivo"></p>
+        </div>
+      </div>
+
+      <!-- Fortalezas -->
+      <div class="coaching-section" id="section-fortalezas" style="display:none;">
+        <h4>Fortalezas identificadas</h4>
+        <div id="list-fortalezas"></div>
+      </div>
+
+      <!-- Áreas de mejora -->
+      <div class="coaching-section" id="section-mejoras" style="display:none;">
+        <h4>Áreas de mejora</h4>
+        <div id="list-mejoras"></div>
+      </div>
+
+      <!-- Tácticas + Oportunidades perdidas -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem;">
+        <div class="coaching-section" id="section-tacticas" style="display:none;">
+          <h4>Tácticas efectivas</h4>
+          <div class="coaching-tags" id="list-tacticas"></div>
+        </div>
+        <div class="coaching-section" id="section-oportunidades" style="display:none;">
+          <h4>Oportunidades perdidas</h4>
+          <div class="coaching-tags" id="list-oportunidades"></div>
+        </div>
+      </div>
+
+      <!-- Recomendación principal -->
+      <div class="coaching-section" id="section-recomendacion" style="display:none;">
+        <h4>Recomendación principal para tu próxima práctica</h4>
+        <div class="recomendacion-box" id="recomendacion-text"></div>
+      </div>
+    </div>
+
+    <!-- Lenguaje no verbal -->
+    <div class="card">
+      <div class="card-header-row">
+        <h2>Tu lenguaje no verbal</h2>
+      </div>
+      <div class="summary-grid" id="summary-grid"></div>
+      <div
+        style="margin-top:1.5rem; position:relative; width:100%; height:320px; border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:1rem; background:#fff;">
+        <canvas id="timeline-chart" style="width:100%; height:100%;"></canvas>
+      </div>
+      <p class="status-line" style="margin-top:0.5rem;">
+        Este gráfico muestra la evolución temporal de tu lenguaje corporal. Puedes hacer clic en las leyendas de arriba
+        para activar/desactivar líneas individuales.
+      </p>
+    </div>
+
+    <!-- Transcripción completa -->
+    <div class="card">
+      <div class="card-header-row">
+        <h2>Transcripción</h2>
+      </div>
+      <div class="transcript" id="transcript"></div>
+    </div>
+
+    <a href="/index.html"><button class="ghost">← Volver al inicio</button></a>
+  </main>
+
+  <footer class="app-footer">
+    <strong>Universidad de la Sabana</strong> · GovLab · Simulador de Negociación con IA
+  </footer>
+
+  <script src="/static/js/review.js"></script>
+</body>
+
+</html>

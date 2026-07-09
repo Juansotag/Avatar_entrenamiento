@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Edición de perfiles — Simulador de Negociación GovLab" />
+  <title>Perfiles — Simulador de Negociación</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-brand">
+        <img src="/static/GovLab_blanco.png" alt="GovLab Logo" class="header-logo" />
+        <div class="header-divider"></div>
+        <span class="header-title">Simulador de Negociación</span>
+      </div>
+      <nav class="header-nav">
+        <a href="/index.html" class="nav-pill">Inicio</a>
+        <a href="/profiles.html" class="nav-pill active">Perfiles</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-intro">
+      <h1>Configuración de perfiles</h1>
+      <p>Define quién eres como negociante y ajusta el comportamiento del avatar para cada simulación.</p>
+    </div>
+
+    <!-- Pestañas -->
+    <div class="tabs-row">
+      <button class="tab-btn active" id="tab-negotiator" onclick="switchTab('negotiator')">
+        Perfil del negociante
+      </button>
+      <button class="tab-btn" id="tab-avatar" onclick="switchTab('avatar')">
+        Perfil del avatar
+      </button>
+    </div>
+
+    <!-- Panel: Negociante -->
+    <div id="panel-negotiator" class="tab-panel">
+      <div class="card">
+        <div class="card-header-row">
+          <h2>¿Quién eres en esta negociación?</h2>
+        </div>
+        <p class="card-description">
+          Esta información le da al avatar contexto sobre tu rol y te ayuda a obtener un informe de coaching más
+          preciso.
+        </p>
+        <div class="form-group">
+          <label for="neg-name">Nombre completo</label>
+          <input type="text" id="neg-name" placeholder="Ej. María García" />
+        </div>
+        <div class="form-group">
+          <label for="neg-role">Cargo o rol</label>
+          <input type="text" id="neg-role" placeholder="Ej. Directora de Relaciones Institucionales" />
+        </div>
+        <div class="form-group">
+          <label for="neg-org">Organización o empresa</label>
+          <input type="text" id="neg-org" placeholder="Ej. FEDEGAN-LLO / Empresa XYZ" />
+        </div>
+        <div class="form-group">
+          <label for="neg-objectives">Objetivos y contexto de negociación</label>
+          <textarea id="neg-objectives" rows="5"
+            placeholder="Describe tus metas en esta negociación, tu posición de partida, y cualquier restricción que debas respetar..."></textarea>
+        </div>
+        <div class="form-actions">
+          <span id="neg-status" class="save-status"></span>
+          <button class="accent" id="neg-save-btn" onclick="saveNegotiator()">Guardar perfil</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel: Avatar -->
+    <div id="panel-avatar" class="tab-panel" style="display:none;">
+      <div class="card">
+        <div class="card-header-row">
+          <h2>Perfil del personaje</h2>
+        </div>
+        <p class="card-description">
+          Define quién es el Mandatario: su historia, motivaciones y estilo. Los cambios se aplican en la próxima
+          sesión.
+        </p>
+        <div class="form-group">
+          <label for="av-perfil">Perfil del personaje</label>
+          <textarea id="av-perfil" rows="6"
+            placeholder="Describe el perfil del Mandatario: origen, cargo, valores, motivaciones..."></textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header-row">
+          <h2>Tono y estilo de habla</h2>
+        </div>
+        <p class="card-description">
+          Define cómo habla el avatar: su vocabulario, cadencia, y cómo reacciona emocionalmente en la conversación.
+        </p>
+        <div class="form-group">
+          <label for="av-tono">Estilo comunicativo</label>
+          <textarea id="av-tono" rows="6"
+            placeholder="Describe el tono del Mandatario: ¿es directo o diplomático? ¿usa jerga? ¿cómo expresa desacuerdo?..."></textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header-row">
+          <h2>Reglas de negociación</h2>
+        </div>
+        <p class="card-description">
+          Define las reglas tácticas del avatar: cuándo cede, qué líneas rojas tiene, cómo responde a datos vs.
+          emociones.
+        </p>
+        <div class="form-group">
+          <label for="av-reglas">Reglas y límites</label>
+          <textarea id="av-reglas" rows="8"
+            placeholder="Ej: No cede nada en el primer intercambio. Siempre pide algo a cambio. Sus líneas rojas son..."></textarea>
+        </div>
+        <div class="form-actions">
+          <span id="av-status" class="save-status"></span>
+          <button class="accent" id="av-save-btn" onclick="saveAvatar()">Guardar perfil del avatar</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <strong>Universidad de la Sabana</strong> · GovLab · Simulador de Negociación con IA
+  </footer>
+
+  <script src="/static/js/profiles.js"></script>
+</body>
+
+</html>

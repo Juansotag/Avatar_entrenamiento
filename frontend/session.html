@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Negociación en curso — Simulador UniSabana GovLab" />
+  <title>Negociación en curso — UniSabana GovLab</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-brand">
+        <img src="/static/GovLab_blanco.png" alt="GovLab Logo" class="header-logo" />
+        <div class="header-divider"></div>
+        <span class="header-title" id="case-title">Negociación</span>
+      </div>
+      <nav class="header-nav">
+        <a href="/index.html" class="nav-pill">← Inicio</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1.5rem;">
+      <div id="timer" style="margin-bottom: 0;">5:00</div>
+      <button class="secondary" id="add-time-btn" style="padding: 0.4rem 0.8rem; font-size: var(--fs-sm); height: fit-content;">+1 Minuto</button>
+    </div>
+
+    <div class="session-layout">
+      <!-- Panel izquierdo: persona + cámara -->
+      <div>
+        <div class="persona-panel card">
+          <img id="persona-photo" src="/persona-assets/persona_photo.svg" alt="El Mandatario" />
+          <p class="persona-name">El Mandatario</p>
+          <p class="persona-role">Contraparte</p>
+          <audio id="persona-audio" autoplay></audio>
+        </div>
+
+        <div class="camera-panel card">
+          <p class="camera-panel-label">Tu cámara</p>
+          <video id="user-video" autoplay muted playsinline></video>
+          <p class="status-line" id="nonverbal-status">Iniciando análisis de cámara...</p>
+        </div>
+      </div>
+
+      <!-- Panel derecho: conversación -->
+      <div class="card">
+        <div class="transcript" id="transcript"></div>
+        <button class="primary" id="record-btn"> Haz clic para hablar</button>
+        <button class="danger" id="end-btn">Terminar sesión</button>
+        <p class="status-line" id="turn-status"></p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <strong>Universidad de la Sabana</strong> · GovLab · Simulador de Negociación con IA
+  </footer>
+
+  <script src="/static/js/recorder.js"></script>
+  <script type="module" src="/static/js/session.js"></script>
+</body>
+
+</html>
