@@ -21,6 +21,7 @@ class CaseCreate(BaseModel):
     avatar_profile: Optional[str] = None
     avatar_tone: Optional[str] = None
     avatar_rules: Optional[str] = None
+    avatar_voice: Optional[str] = "onyx"
     persona_notes: Optional[str] = None
 
 
@@ -38,6 +39,7 @@ class CaseUpdate(BaseModel):
     avatar_profile: Optional[str] = None
     avatar_tone: Optional[str] = None
     avatar_rules: Optional[str] = None
+    avatar_voice: Optional[str] = None
     persona_notes: Optional[str] = None
 
 
@@ -59,6 +61,7 @@ class CaseRead(BaseModel):
     avatar_profile: Optional[str] = None
     avatar_tone: Optional[str] = None
     avatar_rules: Optional[str] = None
+    avatar_voice: Optional[str] = "onyx"
     persona_notes: Optional[str] = None
 
 

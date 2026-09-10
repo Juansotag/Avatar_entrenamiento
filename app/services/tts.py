@@ -14,18 +14,21 @@ def _client_instance() -> OpenAI:
     return _client
 
 
-def synthesize_speech(text: str) -> bytes:
+def synthesize_speech(text: str, voice: Optional[str] = None) -> bytes:
     """Genera audio a partir de texto via la API de TTS de OpenAI.
 
     Usa el modelo tts-1 (optimizado para baja latencia en tiempo real).
-    La voz 'onyx' es grave y profesional, ideal para un avatar de negociación.
-    Otras opciones: alloy, echo, fable, nova, shimmer.
+    Soporta selección de voz dinámica según el perfil y género del avatar:
+    - Femeninas: nova, shimmer
+    - Masculinas: onyx, echo
+    - Neutras: alloy, fable
 
     NOTA: el audio devuelto está en formato mp3.
     """
+    selected_voice = voice or settings.openai_tts_voice
     response = _client_instance().audio.speech.create(
         model="tts-1",
-        voice=settings.openai_tts_voice,
+        voice=selected_voice,
         input=text,
         response_format="mp3",
     )

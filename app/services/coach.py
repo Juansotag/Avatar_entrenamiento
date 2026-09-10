@@ -136,10 +136,11 @@ def analyze_session(
     )
 
     try:
-        # Usar extended thinking para análisis profundo
+        # Usar extended thinking para análisis profundo con el modelo de coaching
+        coaching_model = getattr(settings, "coaching_model_name", settings.model_name)
         try:
             response = _client_instance().messages.create(
-                model=settings.model_name,
+                model=coaching_model,
                 max_tokens=16000,
                 thinking={
                     "type": "enabled",
@@ -154,7 +155,7 @@ def analyze_session(
                 thinking_err
             )
             response = _client_instance().messages.create(
-                model=settings.model_name,
+                model=coaching_model,
                 max_tokens=4096,
                 system=COACHING_SYSTEM_PROMPT,
                 messages=[{"role": "user", "content": prompt}],

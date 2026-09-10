@@ -23,6 +23,7 @@ def create_case(payload: CaseCreate, db: DBSession = Depends(get_db)) -> Case:
         avatar_profile=payload.avatar_profile,
         avatar_tone=payload.avatar_tone,
         avatar_rules=payload.avatar_rules,
+        avatar_voice=payload.avatar_voice or "onyx",
         persona_notes=payload.persona_notes,
     )
     db.add(case)

@@ -36,13 +36,13 @@ def _audio_url(audio_path: Optional[str]) -> Optional[str]:
     return f"/audio/{audio_path}" if audio_path else None
 
 
-def _synthesize_or_none(text: str, session_id: int, turn_index: int) -> Optional[str]:
+def _synthesize_or_none(text: str, session_id: int, turn_index: int, voice: Optional[str] = None) -> Optional[str]:
     """La voz del personaje es un extra, no algo que deba tumbar la conversacion si
     OpenAI TTS no esta configurado o falla. Si falla, se sigue solo con texto."""
     if not settings.openai_api_key:
         return None
     try:
-        audio_bytes = tts.synthesize_speech(text)
+        audio_bytes = tts.synthesize_speech(text, voice=voice)
         return _save_audio(session_id, turn_index, "persona", audio_bytes, "mp3")
     except Exception:
         logger.exception("TTS fallo para session_id=%s turn_index=%s, se sigue solo con texto", session_id, turn_index)
@@ -89,6 +89,7 @@ def start_session(case_id: int, db: DBSession = Depends(get_db)) -> SessionStart
     avatar_profile = case.avatar_profile
     avatar_tone = case.avatar_tone
     avatar_rules = case.avatar_rules
+    avatar_voice = case.avatar_voice
     session_id = session.id
     duration_seconds = case.duration_seconds or settings.session_duration_seconds
     case_read = CaseRead.model_validate(case)
@@ -105,7 +106,7 @@ def start_session(case_id: int, db: DBSession = Depends(get_db)) -> SessionStart
         avatar_tone=avatar_tone,
         avatar_rules=avatar_rules,
     )
-    audio_path = _synthesize_or_none(opening_text, session_id, 0)
+    audio_path = _synthesize_or_none(opening_text, session_id, 0, voice=avatar_voice)
 
     # Registrar el turno en la DB en una transacción corta
     opening_turn = Turn(
@@ -162,6 +163,7 @@ def submit_turn(
     avatar_profile = case.avatar_profile
     avatar_tone = case.avatar_tone
     avatar_rules = case.avatar_rules
+    avatar_voice = case.avatar_voice
 
     prior_turns = list(
         db.exec(
@@ -175,10 +177,18 @@ def submit_turn(
     negotiator_info = _get_negotiator_info(db, case)
     db.close()
 
-    # 1. Procesar transcripción si es necesario (llamada de red larga a Whisper)
+    # 1. Procesar transcripción si es necesario (instantáneo si viene transcrito del navegador, o vía Whisper)
     if text and text.strip():
         user_text = text.strip()
-        user_audio_path = None
+        if audio is not None:
+            try:
+                audio_bytes = audio.file.read()
+                ext = (audio.filename or "turn.webm").rsplit(".", 1)[-1]
+                user_audio_path = _save_audio(session_id, next_index, "user", audio_bytes, ext)
+            except Exception:
+                user_audio_path = None
+        else:
+            user_audio_path = None
     elif audio is not None:
         audio_bytes = audio.file.read()
         user_text = stt.transcribe_audio(audio_bytes, filename=audio.filename or "turn.webm")
@@ -253,7 +263,7 @@ def submit_turn(
         persona_text = re.sub(r'<granted_seconds>\d+</granted_seconds>', '', persona_text).strip()
 
     persona_index = next_index + 1
-    persona_audio_path = _synthesize_or_none(persona_text, session_id, persona_index)
+    persona_audio_path = _synthesize_or_none(persona_text, session_id, persona_index, voice=avatar_voice)
 
     # 4. Guardar el turno de la persona en una transacción corta
     persona_turn = Turn(

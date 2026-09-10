@@ -28,6 +28,15 @@ async function loadCases() {
     const avatarNameStr = c.avatar_name || "El Mandatario";
     const detailsId = `case-details-${c.id}`;
 
+    const voiceLabels = {
+      nova: "Voz femenina (Nova)",
+      shimmer: "Voz femenina (Shimmer)",
+      onyx: "Voz masculina (Onyx)",
+      echo: "Voz masculina (Echo)",
+      alloy: "Voz neutra (Alloy)"
+    };
+    const voiceLabel = voiceLabels[c.avatar_voice] || "Voz masculina (Onyx)";
+
     row.innerHTML = `
       <div class="case-item-info">
         <div class="case-item-title">
@@ -38,6 +47,7 @@ async function loadCases() {
         <div class="case-facets-row">
           <span class="facet-chip facet-chip-user" title="Rol del usuario en este caso">Tú: ${escapeHtml(userRoleStr)}</span>
           <span class="facet-chip facet-chip-avatar" title="Contraparte que interpreta la IA">Contraparte: ${escapeHtml(avatarNameStr)}</span>
+          <span class="facet-chip" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;" title="Voz sintetizada para el avatar">${escapeHtml(voiceLabel)}</span>
           ${c.user_organization ? `<span class="facet-chip" style="background:rgba(0,0,0,0.05); color:#555;">${escapeHtml(c.user_organization)}</span>` : ''}
         </div>
 
@@ -53,6 +63,7 @@ async function loadCases() {
           <p style="margin:0 0 0.4rem 0;"><strong>Escenario:</strong> ${escapeHtml(c.scenario_text)}</p>
           ${c.user_objectives ? `<p style="margin:0 0 0.4rem 0;"><strong>Tus objetivos:</strong> ${escapeHtml(c.user_objectives)}</p>` : ''}
           ${c.avatar_profile ? `<p style="margin:0 0 0.4rem 0;"><strong>Perfil del Avatar:</strong> ${escapeHtml(c.avatar_profile)}</p>` : ''}
+          <p style="margin:0 0 0.4rem 0;"><strong>Voz sintetizada:</strong> ${escapeHtml(voiceLabel)}</p>
           ${c.avatar_tone ? `<p style="margin:0 0 0.4rem 0;"><strong>Tono:</strong> ${escapeHtml(c.avatar_tone)}</p>` : ''}
           ${c.avatar_rules ? `<p style="margin:0;"><strong>Reglas y límites:</strong> ${escapeHtml(c.avatar_rules)}</p>` : ''}
         </div>
@@ -144,6 +155,7 @@ document.getElementById("create-btn").addEventListener("click", async () => {
 
   // Faceta 3: Contraparte (Avatar)
   const avatar_name = document.getElementById("avatar_name").value.trim() || "El Mandatario";
+  const avatar_voice = document.getElementById("avatar_voice").value || "onyx";
   const avatar_profile = document.getElementById("avatar_profile").value.trim() || null;
   const avatar_tone = document.getElementById("avatar_tone").value.trim() || null;
   const avatar_rules = document.getElementById("avatar_rules").value.trim() || null;
@@ -171,6 +183,7 @@ document.getElementById("create-btn").addEventListener("click", async () => {
         user_organization,
         user_objectives,
         avatar_name,
+        avatar_voice,
         avatar_profile,
         avatar_tone,
         avatar_rules,
@@ -193,6 +206,7 @@ document.getElementById("create-btn").addEventListener("click", async () => {
     document.getElementById("user_organization").value = "";
     document.getElementById("user_objectives").value = "";
     document.getElementById("avatar_name").value = "El Mandatario";
+    document.getElementById("avatar_voice").value = "onyx";
     document.getElementById("avatar_profile").value = "";
     document.getElementById("avatar_tone").value = "";
     document.getElementById("avatar_rules").value = "";
@@ -234,6 +248,7 @@ function openEditModal(id) {
 
   // Faceta 3
   document.getElementById("edit-avatar-name").value = c.avatar_name || "El Mandatario";
+  document.getElementById("edit-avatar-voice").value = c.avatar_voice || "onyx";
   document.getElementById("edit-avatar-profile").value = c.avatar_profile || "";
   document.getElementById("edit-avatar-tone").value = c.avatar_tone || "";
   document.getElementById("edit-avatar-rules").value = c.avatar_rules || "";
@@ -268,6 +283,7 @@ document.getElementById("modal-save-btn").addEventListener("click", async () => 
   const user_objectives = document.getElementById("edit-user-objectives").value.trim() || null;
 
   const avatar_name = document.getElementById("edit-avatar-name").value.trim() || "El Mandatario";
+  const avatar_voice = document.getElementById("edit-avatar-voice").value || "onyx";
   const avatar_profile = document.getElementById("edit-avatar-profile").value.trim() || null;
   const avatar_tone = document.getElementById("edit-avatar-tone").value.trim() || null;
   const avatar_rules = document.getElementById("edit-avatar-rules").value.trim() || null;
@@ -295,6 +311,7 @@ document.getElementById("modal-save-btn").addEventListener("click", async () => 
         user_organization,
         user_objectives,
         avatar_name,
+        avatar_voice,
         avatar_profile,
         avatar_tone,
         avatar_rules,

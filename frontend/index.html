@@ -109,9 +109,27 @@
         </div>
         <p class="facet-helper">Define la personalidad, el tono y los límites con los que la IA te responderá.</p>
         
-        <div class="form-group">
-          <label for="avatar_name">Nombre de la contraparte *</label>
-          <input type="text" id="avatar_name" placeholder="Ej. El Mandatario / Dr. Roberto Arango / Camila Reyes" value="El Mandatario" />
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label for="avatar_name">Nombre de la contraparte *</label>
+            <input type="text" id="avatar_name" placeholder="Ej. El Mandatario / Dr. Roberto Arango / Camila Reyes" value="El Mandatario" />
+          </div>
+          <div>
+            <label for="avatar_voice">Voz y género del avatar</label>
+            <select id="avatar_voice">
+              <optgroup label="Voces Femeninas">
+                <option value="nova">Femenina — Nova (Cálida y profesional)</option>
+                <option value="shimmer">Femenina — Shimmer (Clara y suave)</option>
+              </optgroup>
+              <optgroup label="Voces Masculinas">
+                <option value="onyx" selected>Masculina — Onyx (Grave e institucional)</option>
+                <option value="echo">Masculina — Echo (Equilibrada y serena)</option>
+              </optgroup>
+              <optgroup label="Voces Neutras">
+                <option value="alloy">Neutra — Alloy (Directa y sobria)</option>
+              </optgroup>
+            </select>
+          </div>
         </div>
         <div class="form-group">
           <label for="avatar_profile">Identidad y Perfil Psicológico del Avatar</label>
@@ -225,9 +243,27 @@
             <h4 class="facet-title">Contraparte (Avatar)</h4>
           </div>
         </div>
-        <div class="form-group">
-          <label for="edit-avatar-name">Nombre de la contraparte *</label>
-          <input type="text" id="edit-avatar-name" />
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label for="edit-avatar-name">Nombre de la contraparte *</label>
+            <input type="text" id="edit-avatar-name" />
+          </div>
+          <div>
+            <label for="edit-avatar-voice">Voz y género del avatar</label>
+            <select id="edit-avatar-voice">
+              <optgroup label="Voces Femeninas">
+                <option value="nova">Femenina — Nova (Cálida y profesional)</option>
+                <option value="shimmer">Femenina — Shimmer (Clara y suave)</option>
+              </optgroup>
+              <optgroup label="Voces Masculinas">
+                <option value="onyx">Masculina — Onyx (Grave e institucional)</option>
+                <option value="echo">Masculina — Echo (Equilibrada y serena)</option>
+              </optgroup>
+              <optgroup label="Voces Neutras">
+                <option value="alloy">Neutra — Alloy (Directa y sobria)</option>
+              </optgroup>
+            </select>
+          </div>
         </div>
         <div class="form-group">
           <label for="edit-avatar-profile">Perfil e Identidad del Avatar</label>

@@ -40,7 +40,7 @@ def build_system_prompt(
             f"## REGLAS DE CONDUCTA Y LÍMITES\n"
             f"{avatar_rules.strip() if avatar_rules else 'Mantén tu personaje en todo momento.'}\n"
             f"- Responde siempre en primera persona como {avatar_name}.\n"
-            f"- Mantén respuestas directas, realistas y conversacionales (de 1 a 4 párrafos cortos).\n"
+            f"- Mantén un ritmo de conversación oral realista y flexible: la mayoría de tus intervenciones deben ser directas y conversacionales (de 2 a 5 oraciones ágiles), pero cuando la situación lo amerite (exponer una contrapropuesta detallada, sustentar una objeción técnica o legal, o plantear condiciones clave) puedes desarrollar argumentos más extensos y completos con la profundidad requerida.\n"
             f"- Nunca salgas del personaje ni admitas ser una inteligencia artificial."
         )
     else:
@@ -85,7 +85,7 @@ def get_opening_instruction(avatar_name: str = "la contraparte", user_role: Opti
     interlocutor_str = f"a la persona en su rol de {user_role}" if user_role else "a tu interlocutor"
     return (
         f"Estás a punto de iniciar la conversación/reunión con {interlocutor_str} en el escenario descrito arriba. "
-        f"Abre la interacción en persona, en primera persona, en dos o tres frases breves y directas, tal como lo haría "
+        f"Abre la interacción en persona, en primera persona, de forma natural y directa (típicamente entre dos y cuatro frases claras), tal como lo haría "
         f"{avatar_name}: manteniendo tu personaje, tu estilo y estableciendo el tono de la reunión sin rodeos."
     )
 
@@ -136,8 +136,8 @@ def generate_opening_line(
     opening_instruction = get_opening_instruction(avatar_name, user_role)
 
     message = _client_instance().messages.create(
-        model=settings.model_name,
-        max_tokens=300,
+        model=settings.dialogue_model_name,
+        max_tokens=400,
         system=system_prompt,
         messages=[{"role": "user", "content": opening_instruction}],
     )
@@ -178,8 +178,8 @@ def generate_reply(
     messages = _build_messages(stored_turns, user_message, opening_instruction=opening_instruction)
 
     message = _client_instance().messages.create(
-        model=settings.model_name,
-        max_tokens=5000,
+        model=settings.dialogue_model_name,
+        max_tokens=1000,
         system=system_prompt,
         messages=messages,
     )
@@ -220,8 +220,8 @@ def generate_reply_stream(
     messages = _build_messages(stored_turns, user_message, opening_instruction=opening_instruction)
 
     with _client_instance().messages.stream(
-        model=settings.model_name,
-        max_tokens=5000,
+        model=settings.dialogue_model_name,
+        max_tokens=1000,
         system=system_prompt,
         messages=messages,
     ) as stream:

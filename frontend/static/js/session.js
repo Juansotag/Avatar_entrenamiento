@@ -20,6 +20,34 @@ const nonverbalStatusEl = document.getElementById("nonverbal-status");
 const personaAudioEl = document.getElementById("persona-audio");
 const videoEl = document.getElementById("user-video");
 
+// Reconocimiento de voz nativo del navegador (latencia cero)
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let speechRecognizer = null;
+let currentSpeechTranscript = "";
+
+if (SpeechRecognition) {
+  try {
+    speechRecognizer = new SpeechRecognition();
+    speechRecognizer.lang = "es-CO";
+    speechRecognizer.continuous = true;
+    speechRecognizer.interimResults = true;
+
+    speechRecognizer.onresult = (event) => {
+      let fullText = "";
+      for (let i = 0; i < event.results.length; i++) {
+        fullText += event.results[i][0].transcript + " ";
+      }
+      currentSpeechTranscript = fullText.trim();
+    };
+
+    speechRecognizer.onerror = (e) => {
+      console.warn("Speech recognition error:", e);
+    };
+  } catch (err) {
+    console.warn("SpeechRecognition no soportado:", err);
+  }
+}
+
 let avatarName = "El Mandatario";
 let userRole = "Tú";
 
@@ -150,12 +178,15 @@ async function setupCamera() {
   }
 }
 
-async function submitTurn(blob) {
+async function submitTurn(blob, recognizedText = "") {
   isTimerPaused = true;
-  turnStatusEl.textContent = `${avatarName} está pensando...`;
+  turnStatusEl.textContent = `${avatarName} está respondiendo...`;
   recordBtn.disabled = true;
   const formData = new FormData();
   formData.append("audio", blob, "turn.webm");
+  if (recognizedText && recognizedText.trim()) {
+    formData.append("text", recognizedText.trim());
+  }
   formData.append("remaining_seconds", remainingSeconds);
 
   try {
@@ -181,18 +212,26 @@ let isRecording = false;
 async function handleRecordClick() {
   if (!recorder) return;
   if (!isRecording) {
+    currentSpeechTranscript = "";
+    if (speechRecognizer) {
+      try { speechRecognizer.start(); } catch (e) {}
+    }
     recorder.start();
     isRecording = true;
-    turnStatusEl.textContent = "Grabando...";
+    turnStatusEl.textContent = "Escuchando...";
     recordBtn.textContent = "Grabando... Haz clic para enviar";
     recordBtn.classList.add("recording");
   } else {
     if (recorder.mediaRecorder && recorder.mediaRecorder.state === "recording") {
-      recordBtn.textContent = "Procesando audio...";
+      recordBtn.textContent = "Enviando...";
       recordBtn.classList.remove("recording");
       isRecording = false;
+      if (speechRecognizer) {
+        try { speechRecognizer.stop(); } catch (e) {}
+      }
+      const recognized = currentSpeechTranscript;
       const blob = await recorder.stop();
-      await submitTurn(blob);
+      await submitTurn(blob, recognized);
     }
   }
 }

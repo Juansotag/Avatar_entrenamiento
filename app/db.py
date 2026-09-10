@@ -58,6 +58,7 @@ def init_db() -> None:
             ("avatar_profile", "TEXT"),
             ("avatar_tone", "TEXT"),
             ("avatar_rules", "TEXT"),
+            ("avatar_voice", "TEXT DEFAULT 'onyx'"),
         ]:
             try:
                 conn.execute(text(f'ALTER TABLE "case" ADD COLUMN {col} {col_type};'))

@@ -27,6 +27,7 @@ class Case(SQLModel, table=True):
     avatar_profile: Optional[str] = Field(default=None)
     avatar_tone: Optional[str] = Field(default=None)
     avatar_rules: Optional[str] = Field(default=None)
+    avatar_voice: Optional[str] = Field(default="onyx")
     persona_notes: Optional[str] = Field(default=None)
 
 

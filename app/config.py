@@ -15,8 +15,14 @@ class Settings(BaseSettings):
     # 'onyx' es grave y profesional, ideal para avatar de negociación.
     openai_tts_voice: str = "onyx"
 
-    # Modelo principal del avatar de negociación. Nunca degradar sin pedido explícito.
-    model_name: str = "claude-opus-4-8"
+    # Modelo para diálogo en vivo (alta velocidad de respuesta y roleplay nítido)
+    dialogue_model_name: str = "claude-3-5-sonnet-20241022"
+
+    # Modelo para análisis exhaustivo de coaching post-sesión (con extended thinking)
+    coaching_model_name: str = "claude-opus-4-8"
+
+    # Modelo principal retrocompatible
+    model_name: str = "claude-3-5-sonnet-20241022"
 
     # Presupuesto de tokens de pensamiento extendido para el análisis de coaching.
     # 8000 es suficiente para sesiones de 5 min; aumentar para análisis más profundos.
