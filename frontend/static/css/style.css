@@ -122,6 +122,19 @@ header {
   opacity: 0.92;
 }
 
+.header-logo-pitchlab {
+  height: 26px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.95;
+  transition: opacity var(--transition), transform var(--transition);
+}
+
+.header-logo-pitchlab:hover {
+  opacity: 1;
+  transform: scale(1.02);
+}
+
 .header-divider {
   width: 1px;
   height: 28px;
