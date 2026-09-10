@@ -5,19 +5,40 @@ from pydantic import BaseModel
 
 
 class CaseCreate(BaseModel):
+    # 1. Escenario
     title: str
     scenario_text: str
-    persona_notes: Optional[str] = None
-    avatar_name: Optional[str] = "El Mandatario"
     duration_seconds: Optional[int] = 300
+
+    # 2. Negociante (Tú)
+    user_name: Optional[str] = ""
+    user_role: Optional[str] = ""
+    user_organization: Optional[str] = ""
+    user_objectives: Optional[str] = ""
+
+    # 3. Contraparte (Avatar)
+    avatar_name: Optional[str] = "Contraparte"
+    avatar_profile: Optional[str] = None
+    avatar_tone: Optional[str] = None
+    avatar_rules: Optional[str] = None
+    persona_notes: Optional[str] = None
 
 
 class CaseUpdate(BaseModel):
     title: Optional[str] = None
     scenario_text: Optional[str] = None
-    persona_notes: Optional[str] = None
-    avatar_name: Optional[str] = None
     duration_seconds: Optional[int] = None
+
+    user_name: Optional[str] = None
+    user_role: Optional[str] = None
+    user_organization: Optional[str] = None
+    user_objectives: Optional[str] = None
+
+    avatar_name: Optional[str] = None
+    avatar_profile: Optional[str] = None
+    avatar_tone: Optional[str] = None
+    avatar_rules: Optional[str] = None
+    persona_notes: Optional[str] = None
 
 
 class CaseRead(BaseModel):
@@ -26,10 +47,19 @@ class CaseRead(BaseModel):
     id: int
     title: str
     scenario_text: str
-    persona_notes: Optional[str]
-    avatar_name: str
     duration_seconds: int
     created_at: datetime
+
+    user_name: Optional[str] = ""
+    user_role: Optional[str] = ""
+    user_organization: Optional[str] = ""
+    user_objectives: Optional[str] = ""
+
+    avatar_name: str = "Contraparte"
+    avatar_profile: Optional[str] = None
+    avatar_tone: Optional[str] = None
+    avatar_rules: Optional[str] = None
+    persona_notes: Optional[str] = None
 
 
 class TurnRead(BaseModel):

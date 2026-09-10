@@ -35,32 +35,107 @@
     <!-- Nuevo caso -->
     <div class="card">
       <div class="card-header-row">
-        <h2>Nuevo caso</h2>
+        <h2>Nuevo caso de entrenamiento</h2>
+        <span class="facet-badge badge-scenario">3 Facetas Integradas</span>
       </div>
-      <div class="form-group">
-        <label for="title">Título del caso</label>
-        <input type="text" id="title" placeholder="Ej. Fondo parafiscal ganadero" />
-      </div>
-      <div class="form-group">
-        <label for="scenario">Escenario</label>
-        <textarea id="scenario" placeholder="Describe el contexto de la negociación..."></textarea>
-      </div>
-      <div class="form-group">
-        <label for="notes">Notas del personaje (opcional)</label>
-        <textarea id="notes" placeholder="Matices adicionales para este caso"></textarea>
-      </div>
-      <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-        <div>
-          <label for="avatar_name">Nombre del avatar</label>
-          <input type="text" id="avatar_name" placeholder="Ej. El Mandatario" value="El Mandatario" />
+      <p class="card-description">
+        Cada caso unifica en un solo registro su <strong>escenario</strong>, el perfil de <strong>quién eres tú</strong> y la personalidad de tu <strong>contraparte</strong>.
+      </p>
+
+      <!-- FACETA 1: ESCENARIO -->
+      <div class="facet-section facet-scenario">
+        <div class="facet-header">
+          <div class="facet-title-group">
+            <span class="facet-badge badge-scenario">Faceta 1</span>
+            <h3 class="facet-title">Escenario y Parámetros</h3>
+          </div>
         </div>
-        <div>
-          <label for="duration_minutes">Tiempo de negociación (minutos)</label>
-          <input type="number" id="duration_minutes" placeholder="Ej. 5" value="5" min="1" max="60"
-            style="width: 100%; padding: 0.65rem 0.9rem; border: 1.5px solid var(--border-color); border-radius: var(--radius-sm); font-family: var(--font-main); font-size: var(--fs-base); background: var(--bg-card); color: var(--text-primary); outline: none;" />
+        <p class="facet-helper">Define el contexto situacional de la interacción y la duración de la práctica.</p>
+        
+        <div class="form-group">
+          <label for="title">Título del caso *</label>
+          <input type="text" id="title" placeholder="Ej. Negociación Fondo Parafiscal Ganadero / Mala noticia médica..." />
+        </div>
+        <div class="form-group">
+          <label for="scenario">Contexto del escenario *</label>
+          <textarea id="scenario" rows="4" placeholder="Describe los antecedentes, la tensión de partida, el lugar de la reunión y los hechos clave..."></textarea>
+        </div>
+        <div class="form-group" style="max-width: 260px;">
+          <label for="duration_minutes">Tiempo de interacción (minutos)</label>
+          <input type="number" id="duration_minutes" value="5" min="1" max="60" />
         </div>
       </div>
-      <button class="accent" id="create-btn">Crear caso</button>
+
+      <!-- FACETA 2: NEGOCIANTE (USUARIO) -->
+      <div class="facet-section facet-user">
+        <div class="facet-header">
+          <div class="facet-title-group">
+            <span class="facet-badge badge-user">Faceta 2</span>
+            <h3 class="facet-title">Negociante (Quién eres tú en este caso)</h3>
+          </div>
+          <button type="button" class="ghost" id="btn-autofill-user" style="font-size:0.8rem; padding:0.25rem 0.6rem;">
+            Usar mi perfil predeterminado
+          </button>
+        </div>
+        <p class="facet-helper">El rol y los objetivos específicos que buscas lograr en este encuentro (evaluados por el Coach).</p>
+        
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label for="user_name">Tu nombre</label>
+            <input type="text" id="user_name" placeholder="Ej. Dr. Juan Mendoza" />
+          </div>
+          <div>
+            <label for="user_role">Tu cargo / rol en la reunión</label>
+            <input type="text" id="user_role" placeholder="Ej. Presidente Gremial / Especialista Tratante" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="user_organization">Organización o Entidad que representas</label>
+          <input type="text" id="user_organization" placeholder="Ej. Federación Ganadera / Hospital Universitario" />
+        </div>
+        <div class="form-group">
+          <label for="user_objectives">Objetivos específicos a lograr en esta reunión</label>
+          <textarea id="user_objectives" rows="3" placeholder="¿Qué acuerdos, compromisos o mensajes clave debes asegurar antes de que termine el tiempo?"></textarea>
+        </div>
+      </div>
+
+      <!-- FACETA 3: CONTRAPARTE (AVATAR) -->
+      <div class="facet-section facet-avatar">
+        <div class="facet-header">
+          <div class="facet-title-group">
+            <span class="facet-badge badge-avatar">Faceta 3</span>
+            <h3 class="facet-title">Contraparte / Avatar (Con quién interactúas)</h3>
+          </div>
+        </div>
+        <p class="facet-helper">Define la personalidad, el tono y los límites con los que la IA te responderá.</p>
+        
+        <div class="form-group">
+          <label for="avatar_name">Nombre de la contraparte *</label>
+          <input type="text" id="avatar_name" placeholder="Ej. El Mandatario / Dr. Roberto Arango / Camila Reyes" value="El Mandatario" />
+        </div>
+        <div class="form-group">
+          <label for="avatar_profile">Identidad y Perfil Psicológico del Avatar</label>
+          <textarea id="avatar_profile" rows="3" placeholder="Quién es, qué le preocupa, cuál es su posición de partida e intereses ocultos..."></textarea>
+        </div>
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label for="avatar_tone">Tono y estilo de habla</label>
+            <textarea id="avatar_tone" rows="2" placeholder="Ej. Firme, protocolario, desconfiado / Ansioso, defensivo..."></textarea>
+          </div>
+          <div>
+            <label for="avatar_rules">Reglas y límites de conducta</label>
+            <textarea id="avatar_rules" rows="2" placeholder="Ej. No ceder antes del min 3 / Exigir empatía sin tecnicismos..."></textarea>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="notes">Notas adicionales del caso (opcional)</label>
+          <input type="text" id="notes" placeholder="Detalles de ambientación o instrucciones secretas" />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="accent" id="create-btn">Guardar caso completo</button>
+      </div>
     </div>
 
     <!-- Casos existentes -->
@@ -88,32 +163,92 @@
   <div id="edit-modal" class="modal-overlay" style="display:none;">
     <div class="modal-box">
       <div class="modal-header">
-        <h3>Editar caso</h3>
+        <h3>Editar caso (Tres Facetas)</h3>
         <button class="modal-close" id="modal-close-btn" aria-label="Cerrar">✕</button>
       </div>
-      <div class="form-group">
-        <label for="edit-title">Título</label>
-        <input type="text" id="edit-title" />
+
+      <!-- EDIT FACETA 1 -->
+      <div class="facet-section facet-scenario">
+        <div class="facet-header">
+          <div class="facet-title-group">
+            <span class="facet-badge badge-scenario">Faceta 1</span>
+            <h4 class="facet-title">Escenario</h4>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="edit-title">Título *</label>
+          <input type="text" id="edit-title" />
+        </div>
+        <div class="form-group">
+          <label for="edit-scenario">Escenario *</label>
+          <textarea id="edit-scenario" rows="4"></textarea>
+        </div>
+        <div class="form-group" style="max-width: 240px;">
+          <label for="edit-duration-minutes">Tiempo (minutos)</label>
+          <input type="number" id="edit-duration-minutes" min="1" max="60" />
+        </div>
       </div>
-      <div class="form-group">
-        <label for="edit-scenario">Escenario</label>
-        <textarea id="edit-scenario"></textarea>
+
+      <!-- EDIT FACETA 2 -->
+      <div class="facet-section facet-user">
+        <div class="facet-header">
+          <div class="facet-title-group">
+            <span class="facet-badge badge-user">Faceta 2</span>
+            <h4 class="facet-title">Negociante (Tú)</h4>
+          </div>
+        </div>
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label for="edit-user-name">Tu nombre</label>
+            <input type="text" id="edit-user-name" />
+          </div>
+          <div>
+            <label for="edit-user-role">Tu cargo / rol</label>
+            <input type="text" id="edit-user-role" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="edit-user-org">Organización / Entidad</label>
+          <input type="text" id="edit-user-org" />
+        </div>
+        <div class="form-group">
+          <label for="edit-user-objectives">Objetivos específicos</label>
+          <textarea id="edit-user-objectives" rows="3"></textarea>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="edit-notes">Notas del personaje</label>
-        <textarea id="edit-notes"></textarea>
-      </div>
-      <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-        <div>
-          <label for="edit-avatar-name">Nombre del avatar</label>
+
+      <!-- EDIT FACETA 3 -->
+      <div class="facet-section facet-avatar">
+        <div class="facet-header">
+          <div class="facet-title-group">
+            <span class="facet-badge badge-avatar">Faceta 3</span>
+            <h4 class="facet-title">Contraparte (Avatar)</h4>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="edit-avatar-name">Nombre de la contraparte *</label>
           <input type="text" id="edit-avatar-name" />
         </div>
-        <div>
-          <label for="edit-duration-minutes">Tiempo de negociación (minutos)</label>
-          <input type="number" id="edit-duration-minutes" min="1" max="60"
-            style="width: 100%; padding: 0.65rem 0.9rem; border: 1.5px solid var(--border-color); border-radius: var(--radius-sm); font-family: var(--font-main); font-size: var(--fs-base); background: var(--bg-card); color: var(--text-primary); outline: none;" />
+        <div class="form-group">
+          <label for="edit-avatar-profile">Perfil e Identidad del Avatar</label>
+          <textarea id="edit-avatar-profile" rows="3"></textarea>
+        </div>
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label for="edit-avatar-tone">Tono y estilo</label>
+            <textarea id="edit-avatar-tone" rows="2"></textarea>
+          </div>
+          <div>
+            <label for="edit-avatar-rules">Reglas y límites</label>
+            <textarea id="edit-avatar-rules" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="edit-notes">Notas adicionales del caso</label>
+          <input type="text" id="edit-notes" />
         </div>
       </div>
+
       <div class="modal-actions">
         <button class="ghost" id="modal-cancel-btn">Cancelar</button>
         <button class="accent" id="modal-save-btn">Guardar cambios</button>

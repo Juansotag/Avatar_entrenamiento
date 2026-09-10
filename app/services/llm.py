@@ -19,23 +19,41 @@ def _client_instance() -> Anthropic:
 
 def build_system_prompt(
     scenario_text: str,
-    persona_notes: Optional[str],
-    query: str,
+    persona_notes: Optional[str] = None,
+    query: str = "",
     avatar_name: str = "la contraparte",
     time_context: Optional[str] = None,
     negotiator_info: Optional[dict] = None,
+    avatar_profile: Optional[str] = None,
+    avatar_tone: Optional[str] = None,
+    avatar_rules: Optional[str] = None,
 ) -> str:
     context_snippets = get_relevant_context(query)
-    persona_prompt = get_persona_system_prompt()
-    if avatar_name and avatar_name != "El Mandatario":
+    
+    if avatar_profile and avatar_profile.strip():
         persona_prompt = (
-            persona_prompt
-            .replace("El Mandatario", avatar_name)
-            .replace("el Mandatario", avatar_name)
-            .replace("El Presidente", avatar_name)
-            .replace("el Presidente", avatar_name)
-            .replace("Nicasio Páez", avatar_name)
+            f"# IDENTIDAD Y ROL DEL AVATAR\n"
+            f"Eres {avatar_name}.\n"
+            f"{avatar_profile.strip()}\n\n"
+            f"## TONO Y ESTILO DE COMUNICACIÓN\n"
+            f"{avatar_tone.strip() if avatar_tone else 'Mantén un tono natural, coherente con tu rol, contexto y personalidad.'}\n\n"
+            f"## REGLAS DE CONDUCTA Y LÍMITES\n"
+            f"{avatar_rules.strip() if avatar_rules else 'Mantén tu personaje en todo momento.'}\n"
+            f"- Responde siempre en primera persona como {avatar_name}.\n"
+            f"- Mantén respuestas directas, realistas y conversacionales (de 1 a 4 párrafos cortos).\n"
+            f"- Nunca salgas del personaje ni admitas ser una inteligencia artificial."
         )
+    else:
+        persona_prompt = get_persona_system_prompt()
+        if avatar_name and avatar_name != "El Mandatario":
+            persona_prompt = (
+                persona_prompt
+                .replace("El Mandatario", avatar_name)
+                .replace("el Mandatario", avatar_name)
+                .replace("El Presidente", avatar_name)
+                .replace("el Presidente", avatar_name)
+                .replace("Nicasio Páez", avatar_name)
+            )
     parts = [persona_prompt]
     parts.append("\n## Contexto y escenario de la interacción\n" + scenario_text)
 
@@ -96,17 +114,23 @@ def _build_messages(
 
 def generate_opening_line(
     scenario_text: str,
-    persona_notes: Optional[str],
+    persona_notes: Optional[str] = None,
     avatar_name: str = "El Mandatario",
     negotiator_info: Optional[dict] = None,
+    avatar_profile: Optional[str] = None,
+    avatar_tone: Optional[str] = None,
+    avatar_rules: Optional[str] = None,
 ) -> str:
     """Genera la línea de apertura del personaje al comenzar la sesión."""
     system_prompt = build_system_prompt(
-        scenario_text,
-        persona_notes,
+        scenario_text=scenario_text,
+        persona_notes=persona_notes,
         query=scenario_text,
         avatar_name=avatar_name,
         negotiator_info=negotiator_info,
+        avatar_profile=avatar_profile,
+        avatar_tone=avatar_tone,
+        avatar_rules=avatar_rules,
     )
     user_role = negotiator_info.get("role") if negotiator_info else None
     opening_instruction = get_opening_instruction(avatar_name, user_role)
@@ -125,21 +149,29 @@ def generate_opening_line(
 
 def generate_reply(
     scenario_text: str,
-    persona_notes: Optional[str],
-    stored_turns: list[tuple[str, str]],
-    user_message: str,
+    persona_notes: Optional[str] = None,
+    stored_turns: list[tuple[str, str]] = None,
+    user_message: str = "",
     avatar_name: str = "El Mandatario",
     time_context: Optional[str] = None,
     negotiator_info: Optional[dict] = None,
+    avatar_profile: Optional[str] = None,
+    avatar_tone: Optional[str] = None,
+    avatar_rules: Optional[str] = None,
 ) -> str:
     """Genera la respuesta del personaje en un turno dado."""
+    if stored_turns is None:
+        stored_turns = []
     system_prompt = build_system_prompt(
-        scenario_text,
-        persona_notes,
+        scenario_text=scenario_text,
+        persona_notes=persona_notes,
         query=user_message,
         avatar_name=avatar_name,
         time_context=time_context,
         negotiator_info=negotiator_info,
+        avatar_profile=avatar_profile,
+        avatar_tone=avatar_tone,
+        avatar_rules=avatar_rules,
     )
     user_role = negotiator_info.get("role") if negotiator_info else None
     opening_instruction = get_opening_instruction(avatar_name, user_role)
@@ -159,21 +191,29 @@ def generate_reply(
 
 def generate_reply_stream(
     scenario_text: str,
-    persona_notes: Optional[str],
-    stored_turns: list[tuple[str, str]],
-    user_message: str,
+    persona_notes: Optional[str] = None,
+    stored_turns: list[tuple[str, str]] = None,
+    user_message: str = "",
     avatar_name: str = "El Mandatario",
     time_context: Optional[str] = None,
     negotiator_info: Optional[dict] = None,
+    avatar_profile: Optional[str] = None,
+    avatar_tone: Optional[str] = None,
+    avatar_rules: Optional[str] = None,
 ) -> Generator[str, None, None]:
     """Igual que generate_reply pero en modo streaming."""
+    if stored_turns is None:
+        stored_turns = []
     system_prompt = build_system_prompt(
-        scenario_text,
-        persona_notes,
+        scenario_text=scenario_text,
+        persona_notes=persona_notes,
         query=user_message,
         avatar_name=avatar_name,
         time_context=time_context,
         negotiator_info=negotiator_info,
+        avatar_profile=avatar_profile,
+        avatar_tone=avatar_tone,
+        avatar_rules=avatar_rules,
     )
     user_role = negotiator_info.get("role") if negotiator_info else None
     opening_instruction = get_opening_instruction(avatar_name, user_role)

@@ -49,8 +49,16 @@ def _synthesize_or_none(text: str, session_id: int, turn_index: int) -> Optional
         return None
 
 
-def _get_negotiator_info(db: DBSession) -> Optional[dict]:
-    """Obtiene los datos del perfil del negociante si están diligenciados."""
+def _get_negotiator_info(db: DBSession, case: Optional[Case] = None) -> Optional[dict]:
+    """Obtiene los datos del perfil del negociante, priorizando los definidos en el caso si existen."""
+    if case and any([case.user_name, case.user_role, case.user_organization, case.user_objectives]):
+        return {
+            "name": (case.user_name or "").strip(),
+            "role": (case.user_role or "").strip(),
+            "organization": (case.user_organization or "").strip(),
+            "objectives": (case.user_objectives or "").strip(),
+        }
+
     profile = db.exec(select(NegotiatorProfile)).first()
     if not profile:
         return None
@@ -78,15 +86,24 @@ def start_session(case_id: int, db: DBSession = Depends(get_db)) -> SessionStart
     scenario_text = case.scenario_text
     persona_notes = case.persona_notes
     avatar_name = case.avatar_name
+    avatar_profile = case.avatar_profile
+    avatar_tone = case.avatar_tone
+    avatar_rules = case.avatar_rules
     session_id = session.id
     duration_seconds = case.duration_seconds or settings.session_duration_seconds
     case_read = CaseRead.model_validate(case)
-    negotiator_info = _get_negotiator_info(db)
+    negotiator_info = _get_negotiator_info(db, case)
     db.close()
 
     # Llamadas a APIs externas
     opening_text = llm.generate_opening_line(
-        scenario_text, persona_notes, avatar_name, negotiator_info=negotiator_info
+        scenario_text=scenario_text,
+        persona_notes=persona_notes,
+        avatar_name=avatar_name,
+        negotiator_info=negotiator_info,
+        avatar_profile=avatar_profile,
+        avatar_tone=avatar_tone,
+        avatar_rules=avatar_rules,
     )
     audio_path = _synthesize_or_none(opening_text, session_id, 0)
 
@@ -142,6 +159,9 @@ def submit_turn(
     scenario_text = case.scenario_text
     persona_notes = case.persona_notes
     avatar_name = case.avatar_name
+    avatar_profile = case.avatar_profile
+    avatar_tone = case.avatar_tone
+    avatar_rules = case.avatar_rules
 
     prior_turns = list(
         db.exec(
@@ -152,7 +172,7 @@ def submit_turn(
     stored_turns = [(t.role, t.text) for t in prior_turns]
     
     # Cerrar la sesión para liberar bloqueos antes del procesamiento lento
-    negotiator_info = _get_negotiator_info(db)
+    negotiator_info = _get_negotiator_info(db, case)
     db.close()
 
     # 1. Procesar transcripción si es necesario (llamada de red larga a Whisper)
@@ -209,13 +229,16 @@ def submit_turn(
         )
 
     persona_text = llm.generate_reply(
-        scenario_text,
-        persona_notes,
-        stored_turns,
-        user_text,
-        avatar_name,
+        scenario_text=scenario_text,
+        persona_notes=persona_notes,
+        stored_turns=stored_turns,
+        user_message=user_text,
+        avatar_name=avatar_name,
         time_context=time_context,
         negotiator_info=negotiator_info,
+        avatar_profile=avatar_profile,
+        avatar_tone=avatar_tone,
+        avatar_rules=avatar_rules,
     )
     
     # Parsear y limpiar granted_seconds
@@ -341,9 +364,10 @@ def end_session(session_id: int, db: DBSession = Depends(get_db)) -> SessionEndR
     case = db.get(Case, session.case_id)
     scenario_text = case.scenario_text if case else ""
     avatar_name = case.avatar_name if case else "la contraparte"
+    avatar_profile = case.avatar_profile if case else None
     all_turns = list(db.exec(select(Turn).where(Turn.session_id == session_id).order_by(Turn.turn_index)))
     turns_for_coach = [(t.role, t.text) for t in all_turns]
-    negotiator_info = _get_negotiator_info(db)
+    negotiator_info = _get_negotiator_info(db, case)
 
     # Cerrar la sesión de DB para liberar bloqueos durante la llamada larga de Claude Coaching
     db.close()
@@ -355,6 +379,7 @@ def end_session(session_id: int, db: DBSession = Depends(get_db)) -> SessionEndR
             turns=turns_for_coach,
             negotiator_info=negotiator_info,
             avatar_name=avatar_name,
+            avatar_profile=avatar_profile,
         )
         import json
         coaching_report_json = json.dumps(coaching_data, ensure_ascii=False)

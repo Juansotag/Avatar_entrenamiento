@@ -14,9 +14,16 @@ def create_case(payload: CaseCreate, db: DBSession = Depends(get_db)) -> Case:
     case = Case(
         title=payload.title,
         scenario_text=payload.scenario_text,
+        duration_seconds=payload.duration_seconds or 300,
+        user_name=payload.user_name or "",
+        user_role=payload.user_role or "",
+        user_organization=payload.user_organization or "",
+        user_objectives=payload.user_objectives or "",
+        avatar_name=payload.avatar_name or "Contraparte",
+        avatar_profile=payload.avatar_profile,
+        avatar_tone=payload.avatar_tone,
+        avatar_rules=payload.avatar_rules,
         persona_notes=payload.persona_notes,
-        avatar_name=payload.avatar_name,
-        duration_seconds=payload.duration_seconds,
     )
     db.add(case)
     db.commit()
@@ -42,16 +49,8 @@ def update_case(case_id: int, payload: CaseUpdate, db: DBSession = Depends(get_d
     case = db.get(Case, case_id)
     if case is None:
         raise HTTPException(status_code=404, detail="Caso no encontrado")
-    if payload.title is not None:
-        case.title = payload.title
-    if payload.scenario_text is not None:
-        case.scenario_text = payload.scenario_text
-    if payload.persona_notes is not None:
-        case.persona_notes = payload.persona_notes
-    if payload.avatar_name is not None:
-        case.avatar_name = payload.avatar_name
-    if payload.duration_seconds is not None:
-        case.duration_seconds = payload.duration_seconds
+    for key, value in payload.model_dump(exclude_unset=True).items():
+        setattr(case, key, value)
     db.add(case)
     db.commit()
     db.refresh(case)

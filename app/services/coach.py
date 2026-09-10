@@ -91,6 +91,7 @@ def analyze_session(
     turns: list[tuple[str, str]],  # [(role, text), ...]
     negotiator_info: Optional[dict] = None,
     avatar_name: str = "la contraparte",
+    avatar_profile: Optional[str] = None,
 ) -> dict:
     """
     Analiza la transcripción de una sesión y devuelve
@@ -109,7 +110,10 @@ def analyze_session(
         transcript_lines.append(f"[{label}]: {text}")
     transcript = "\n\n".join(transcript_lines)
 
-    persona_brief = get_persona_system_prompt()
+    if avatar_profile and avatar_profile.strip():
+        persona_brief = avatar_profile.strip()
+    else:
+        persona_brief = get_persona_system_prompt()
 
     user_profile_lines = []
     if negotiator_info:

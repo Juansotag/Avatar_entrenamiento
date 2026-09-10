@@ -10,12 +10,24 @@ def utcnow() -> datetime:
 
 class Case(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    # 1. Faceta Escenario
     title: str
     scenario_text: str
-    persona_notes: Optional[str] = None
-    avatar_name: str = Field(default="El Mandatario")
     duration_seconds: int = Field(default=300)
     created_at: datetime = Field(default_factory=utcnow)
+
+    # 2. Faceta Negociante (Tú)
+    user_name: Optional[str] = Field(default="")
+    user_role: Optional[str] = Field(default="")
+    user_organization: Optional[str] = Field(default="")
+    user_objectives: Optional[str] = Field(default="")
+
+    # 3. Faceta Contraparte (Avatar)
+    avatar_name: str = Field(default="Contraparte")
+    avatar_profile: Optional[str] = Field(default=None)
+    avatar_tone: Optional[str] = Field(default=None)
+    avatar_rules: Optional[str] = Field(default=None)
+    persona_notes: Optional[str] = Field(default=None)
 
 
 class NegotiationSession(SQLModel, table=True):

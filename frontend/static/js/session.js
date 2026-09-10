@@ -21,11 +21,12 @@ const personaAudioEl = document.getElementById("persona-audio");
 const videoEl = document.getElementById("user-video");
 
 let avatarName = "El Mandatario";
+let userRole = "Tú";
 
 function addBubble(role, text) {
   const div = document.createElement("div");
   div.className = `bubble ${role}`;
-  div.innerHTML = `<div class="role">${role === "persona" ? avatarName : "Tú"}</div>${escapeHtml(text)}`;
+  div.innerHTML = `<div class="role">${role === "persona" ? avatarName : userRole}</div>${escapeHtml(text)}`;
   transcriptEl.appendChild(div);
   transcriptEl.scrollTop = transcriptEl.scrollHeight;
 }
@@ -68,11 +69,11 @@ async function playAudioIfAny(url) {
 async function startSession() {
   // Deshabilitar botón y mostrar burbuja de carga inicial
   recordBtn.disabled = true;
-  recordBtn.textContent = "🎙 Cargando avatar...";
+  recordBtn.textContent = "Cargando avatar...";
   transcriptEl.innerHTML = `
     <div class="bubble persona" id="initial-loading-bubble">
       <div class="role">Avatar</div>
-      <div>⏳ Conectando con el avatar y preparando negociación...</div>
+      <div>Conectando con el avatar y preparando negociación...</div>
     </div>
   `;
 
@@ -87,8 +88,14 @@ async function startSession() {
   remainingSeconds = durationSeconds;
 
   avatarName = data.case.avatar_name || "El Mandatario";
+  userRole = data.case.user_role || data.case.user_name || "Tú";
   document.querySelector(".persona-name").textContent = avatarName;
   document.getElementById("persona-photo").alt = avatarName;
+  if (data.case.avatar_tone) {
+    document.querySelector(".persona-role").textContent = `Contraparte · ${data.case.avatar_tone.slice(0, 32)}…`;
+  } else {
+    document.querySelector(".persona-role").textContent = "Contraparte";
+  }
 
   document.getElementById("case-title").textContent = data.case.title;
   
@@ -101,7 +108,7 @@ async function startSession() {
   await setupCamera();
 
   recordBtn.disabled = false;
-  recordBtn.textContent = "🎙 Haz clic para hablar";
+  recordBtn.textContent = "Haz clic para hablar";
 }
 
 async function setupCamera() {
@@ -132,7 +139,7 @@ async function setupCamera() {
       nonverbalStatusEl.textContent = "Analizando lenguaje no verbal...";
     } catch (modelErr) {
       console.error("Error cargando MediaPipe Face Landmarker:", modelErr);
-      nonverbalStatusEl.textContent = "⚠️ Error al cargar el modelo de IA (posible bloqueo de red o ad-blocker).";
+      nonverbalStatusEl.textContent = "Error al cargar el modelo de IA (posible bloqueo de red o ad-blocker).";
     }
   }
   
@@ -165,7 +172,7 @@ async function submitTurn(blob) {
   } finally {
     isTimerPaused = false;
     recordBtn.disabled = false;
-    recordBtn.textContent = "🎙 Haz clic para hablar";
+    recordBtn.textContent = "Haz clic para hablar";
   }
 }
 
@@ -177,7 +184,7 @@ async function handleRecordClick() {
     recorder.start();
     isRecording = true;
     turnStatusEl.textContent = "Grabando...";
-    recordBtn.textContent = "🛑 Grabando... Haz clic para enviar";
+    recordBtn.textContent = "Grabando... Haz clic para enviar";
     recordBtn.classList.add("recording");
   } else {
     if (recorder.mediaRecorder && recorder.mediaRecorder.state === "recording") {
@@ -198,7 +205,7 @@ async function endSession() {
 
   clearInterval(timerInterval);
   endBtn.disabled = true;
-  endBtn.textContent = "⌛ Analizando sesión...";
+  endBtn.textContent = "Analizando sesión...";
   turnStatusEl.textContent = "Generando informe de coaching por IA. Por favor espera unos segundos...";
 
   try {
@@ -225,7 +232,7 @@ async function requestTimeExtension() {
   // Pausar tiempo y bloquear controles
   isTimerPaused = true;
   recordBtn.disabled = true;
-  recordBtn.textContent = "🎙 Solicitando extensión...";
+  recordBtn.textContent = "Solicitando extensión...";
   if (addTimeBtn) {
     addTimeBtn.disabled = true;
     addTimeBtn.textContent = "Procesando...";
@@ -273,7 +280,7 @@ async function requestTimeExtension() {
   } finally {
     isTimerPaused = false;
     recordBtn.disabled = false;
-    recordBtn.textContent = "🎙 Haz clic para hablar";
+    recordBtn.textContent = "Haz clic para hablar";
     if (addTimeBtn) {
       addTimeBtn.disabled = false;
       addTimeBtn.textContent = "+1 Minuto";

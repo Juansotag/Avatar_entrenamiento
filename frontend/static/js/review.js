@@ -37,7 +37,7 @@ function renderTranscript(transcript) {
     const div = document.createElement("div");
     div.className = `bubble ${turn.role}`;
     const audioTag = turn.audio_url ? `<div><audio controls src="${turn.audio_url}"></audio></div>` : "";
-    div.innerHTML = `<div class="role">${turn.role === "persona" ? avatarName : "Tú"}</div>${escapeHtml(turn.text)}${audioTag}`;
+    div.innerHTML = `<div class="role">${turn.role === "persona" ? avatarName : userRole}</div>${escapeHtml(turn.text)}${audioTag}`;
     container.appendChild(div);
   }
 }
@@ -220,7 +220,7 @@ function renderCoachingReport(report) {
     const container = document.getElementById("list-mejoras");
     container.innerHTML = report.areas_de_mejora.map(a => `
       <div class="coaching-item improvement">
-        <div class="item-title">⚠ ${escapeHtml(a.titulo)}</div>
+        <div class="item-title">${escapeHtml(a.titulo)}</div>
         <div class="item-desc">${escapeHtml(a.descripcion)}</div>
         ${a.cita_usuario ? `<blockquote>"${escapeHtml(a.cita_usuario)}"</blockquote>` : ""}
         ${a.sugerencia_reformulacion ? `
@@ -272,10 +272,22 @@ async function load() {
   }
   const data = await res.json();
   avatarName = (data.case && data.case.avatar_name) || "Contraparte";
+  userRole = (data.case && (data.case.user_role || data.case.user_name)) || "Tú";
   document.getElementById("case-title").textContent = data.case ? data.case.title : "(Caso eliminado)";
   document.getElementById("scenario-text").textContent = data.case ? data.case.scenario_text : "";
   const started = new Date(data.started_at).toLocaleString("es-CO");
   document.getElementById("session-meta").textContent = `Iniciada: ${started}, estado: ${data.status}`;
+
+  const facetsContainer = document.getElementById("case-facets-summary");
+  if (facetsContainer && data.case) {
+    const mins = Math.round((data.case.duration_seconds || 300) / 60);
+    facetsContainer.innerHTML = `
+      <span class="facet-chip facet-chip-scenario">${mins} min</span>
+      <span class="facet-chip facet-chip-user">Tú: ${escapeHtml(userRole)}</span>
+      <span class="facet-chip facet-chip-avatar">Contraparte: ${escapeHtml(avatarName)}</span>
+      ${data.case.user_organization ? `<span class="facet-chip" style="background:rgba(0,0,0,0.05); color:#555;">${escapeHtml(data.case.user_organization)}</span>` : ''}
+    `;
+  }
 
   // Renderizar informe de coaching si existe
   if (data.coaching_report) {

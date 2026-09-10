@@ -28,17 +28,17 @@
 
   <main>
     <div class="page-intro">
-      <h1>Configuración de perfiles</h1>
-      <p>Define quién eres como negociante y ajusta el comportamiento del avatar para cada simulación.</p>
+      <h1>Plantillas y Perfil Predeterminado</h1>
+      <p>Configura tu perfil de negociante predeterminado para autorellenar nuevos casos rápidamente, y gestiona la plantilla base del avatar.</p>
     </div>
 
     <!-- Pestañas -->
     <div class="tabs-row">
       <button class="tab-btn active" id="tab-negotiator" onclick="switchTab('negotiator')">
-        Perfil del negociante
+        Perfil predeterminado del negociante
       </button>
       <button class="tab-btn" id="tab-avatar" onclick="switchTab('avatar')">
-        Perfil del avatar
+        Plantilla base del avatar (El Mandatario)
       </button>
     </div>
 
@@ -46,11 +46,10 @@
     <div id="panel-negotiator" class="tab-panel">
       <div class="card">
         <div class="card-header-row">
-          <h2>¿Quién eres en esta negociación?</h2>
+          <h2>Tus datos predeterminados como negociante</h2>
         </div>
         <p class="card-description">
-          Esta información le da al avatar contexto sobre tu rol y te ayuda a obtener un informe de coaching más
-          preciso.
+          Estos datos se usarán como valores predeterminados para auto-completar la faceta de Negociante al crear nuevos casos de entrenamiento.
         </p>
         <div class="form-group">
           <label for="neg-name">Nombre completo</label>
