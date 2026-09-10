@@ -42,9 +42,10 @@ _DEFAULT_CASE_NOTES = (
 
 def init_db() -> None:
     from sqlmodel import text
-    with DBSession(engine) as db:
-        db.exec(text("PRAGMA journal_mode=WAL;"))
-        db.commit()
+    if settings.database_url.startswith("sqlite"):
+        with DBSession(engine) as db:
+            db.exec(text("PRAGMA journal_mode=WAL;"))
+            db.commit()
     # Migrar la base de datos de manera dinámica si las nuevas columnas no existen
     with engine.begin() as conn:
         for col, col_type in [("avatar_name", "TEXT DEFAULT 'El Mandatario'"), ("duration_seconds", "INTEGER DEFAULT 300")]:

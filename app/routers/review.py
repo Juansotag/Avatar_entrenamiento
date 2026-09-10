@@ -88,7 +88,7 @@ def get_session_review(session_id: int, db: DBSession = Depends(get_db)) -> Sess
 
     return SessionReviewResponse(
         session_id=session.id,
-        case=CaseRead.model_validate(case),
+        case=CaseRead.model_validate(case) if case is not None else None,
         status=session.status,
         started_at=session.started_at,
         ended_at=session.ended_at,

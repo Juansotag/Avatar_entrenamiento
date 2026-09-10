@@ -22,23 +22,18 @@ _PERSONA_BRIEF_PATH = settings.data_dir / "persona_brief.md"
 
 # ── Cabecera fija del archivo ──────────────────────────────────────────────────
 _FILE_HEADER = (
-    "# Persona: El Mandatario (arquetipo compuesto, ficticio)\n\n"
-    "Este personaje es un arquetipo político compuesto, inventado para fines de "
-    "entrenamiento. No representa, retrata, ni cita a ninguna persona real, viva o "
-    "histórica. No tiene nombre propio dentro de la aplicacion: se le llama "
-    "\"el Mandatario\" o \"el Presidente\".\n\n"
+    "# Perfil de Contraparte / Avatar de Entrenamiento\n\n"
+    "Este personaje representa a la contraparte en la simulación de negociación o conversación difícil. "
+    "Ha sido configurado para fines de entrenamiento profesional.\n\n"
 )
 
 # ── Instrucciones fijas que siempre cierran el archivo ────────────────────────
 _FILE_FOOTER = (
     "## Instrucciones para el modelo\n\n"
-    "Responde siempre en español, en el personaje de El Mandatario, en primera persona. "
+    "Responde siempre en español, asumiendo estrictamente el personaje y rol de la contraparte descrita, en primera persona. "
     "No rompas el personaje ni menciones que eres una inteligencia artificial. "
-    "No inventes cifras oficiales específicas y verificables de ningún país real; "
-    "si necesitas un dato, habla en términos generales (\"miles de familias\", "
-    "\"una parte importante del sector\") en vez de cifras falsas y precisas. "
-    "Basa tus posiciones de política pública en los temas descritos en los archivos "
-    "de app/data/policy_snippets, no en hechos atribuidos a un mandatario real.\n"
+    "Adapta tus reacciones, objeciones y demandas de manera coherente con el escenario, tu perfil y tus reglas de interacción. "
+    "Mantén una actitud realista y constructivamente desafiante acorde a la situación planteada.\n"
 )
 
 
@@ -53,13 +48,15 @@ def _parse_persona_brief() -> dict[str, str]:
     import re
     blocks = re.split(r"^##\s+", text, flags=re.MULTILINE)
     for block in blocks:
-        lower = block.lower()
-        if lower.startswith("perfil"):
-            sections["perfil"] = block[len("perfil"):].strip()
-        elif lower.startswith("tono"):
-            sections["tono_estilo"] = block[block.index("\n"):].strip()
-        elif lower.startswith("reglas"):
-            sections["reglas"] = block[block.index("\n"):].strip()
+        parts = block.split("\n", 1)
+        header = parts[0].strip().lower()
+        body = parts[1].strip() if len(parts) > 1 else ""
+        if header.startswith("perfil"):
+            sections["perfil"] = body
+        elif header.startswith("tono"):
+            sections["tono_estilo"] = body
+        elif header.startswith("reglas"):
+            sections["reglas"] = body
 
     return sections
 
@@ -70,7 +67,7 @@ def _build_persona_brief(perfil: str, tono_estilo: str, reglas: str) -> str:
         _FILE_HEADER
         + "## Perfil\n\n" + perfil.strip() + "\n\n"
         + "## Tono y estilo de habla\n\n" + tono_estilo.strip() + "\n\n"
-        + "## Reglas de negociación\n\n" + reglas.strip() + "\n\n"
+        + "## Reglas de interacción\n\n" + reglas.strip() + "\n\n"
         + _FILE_FOOTER
     )
 
@@ -117,12 +114,15 @@ def get_avatar_profile() -> AvatarProfileRead:
 
 @router.put("/avatar", response_model=AvatarProfileRead)
 def update_avatar_profile(payload: AvatarProfileUpdate) -> AvatarProfileRead:
+    from app.services.persona import clear_persona_cache
+
     content = _build_persona_brief(
         perfil=payload.perfil,
         tono_estilo=payload.tono_estilo,
         reglas=payload.reglas,
     )
     _PERSONA_BRIEF_PATH.write_text(content, encoding="utf-8")
+    clear_persona_cache()
     return AvatarProfileRead(
         perfil=payload.perfil,
         tono_estilo=payload.tono_estilo,

@@ -28,26 +28,29 @@ def _client_instance() -> Anthropic:
     return _client
 
 
-COACHING_SYSTEM_PROMPT = """Eres un coach experto en negociación, comunicación política y relaciones empresa-Estado.
-Tu tarea es analizar la transcripción de una práctica de negociación entre un empresario (el usuario que practica)
-y un personaje político (interpretado por IA) y entregar un informe de retroalimentación claro, específico, honesto y constructivo.
+COACHING_SYSTEM_PROMPT = """Eres un coach experto en negociación, comunicación estratégica interpersonal y manejo de conversaciones críticas y de alta tensión (incluyendo negociaciones comerciales, diálogo político, retroalimentación académica o laboral, y entrega de noticias complejas o sensibles).
+Tu tarea es analizar la transcripción de una práctica entre un usuario (la persona que entrena) y una contraparte (interpretada por IA) y entregar un informe de retroalimentación riguroso, específico, honesto y constructivo.
 
-El informe debe ser útil para que el empresario mejore sus habilidades reales de negociación con figuras de poder público.
+El informe debe ser útil para que el usuario perfeccione sus habilidades de comunicación, escucha activa, manejo de objeciones, empatía táctica y logro de acuerdos u objetivos según el rol y escenario planteado.
 
 INSTRUCCIONES:
-- Sé directo y concreto. Cita fragmentos textuales de lo que dijo el usuario para ilustrar cada punto.
-- No seas condescendiente ni elogies de manera genérica. Si el desempeño fue pobre, dilo claramente.
-- Identifica patrones de comportamiento, no eventos aislados.
-- El puntaje (0–100) debe ser realista: un 90+ es excepcional, un 50 es promedio.
+- Sé directo y concreto. Cita fragmentos textuales exactos de lo que dijo el usuario para ilustrar cada fortaleza o área de mejora.
+- No seas condescendiente ni elogies de manera genérica. Si el desempeño fue débil, contraproducente o evasivo, dilo claramente.
+- Evalúa si el usuario avanzó hacia sus objetivos declarados o si cometió fallos tácticos en el manejo de la conversación.
+- El puntaje (0–100) debe ser realista y calibrado: 90+ es excepcional, 70-89 es bueno con técnica sólida, 50-69 es regular con vacíos notorios, menos de 50 es insatisfactorio.
+- El campo "resultado_final" debe resumir el desenlace (por ejemplo: "acuerdo_parcial", "aplazamiento", "rechazo", "acuerdo_exitoso", "sin_acuerdo").
 - Responde SIEMPRE en español, en formato JSON válido, sin texto antes ni después del JSON.
 """
 
-COACHING_USER_TEMPLATE = """A continuación tienes el contexto de la negociación y la transcripción completa.
+COACHING_USER_TEMPLATE = """A continuación tienes el contexto de la interacción, los perfiles y la transcripción completa.
 
-## Escenario de negociación:
+## Escenario de la interacción:
 {scenario_text}
 
-## Perfil del personaje político con quien negoció el usuario:
+## Perfil del usuario que practica:
+{negotiator_profile}
+
+## Perfil de la contraparte ({avatar_name}):
 {persona_brief}
 
 ## Transcripción completa de la sesión:
@@ -59,7 +62,7 @@ Genera un informe de coaching completo en el siguiente formato JSON exacto:
 
 {{
   "score": <entero 0-100>,
-  "resultado_final": "<acuerdo_parcial | aplazamiento | rechazo>",
+  "resultado_final": "<acuerdo_parcial | aplazamiento | rechazo | acuerdo_exitoso | sin_acuerdo>",
   "resumen_ejecutivo": "<2-3 oraciones que resumen el desempeño general>",
   "fortalezas": [
     {{
@@ -73,12 +76,12 @@ Genera un informe de coaching completo en el siguiente formato JSON exacto:
       "titulo": "<nombre corto>",
       "descripcion": "<qué debería mejorar y por qué>",
       "cita_usuario": "<fragmento textual de lo que dijo>",
-      "sugerencia_reformulacion": "<cómo debería haberlo dicho>"
+      "sugerencia_reformulacion": "<cómo debería haberlo dicho o enfocado>"
     }}
   ],
   "tacticas_efectivas": ["<tactica1>", "<tactica2>"],
   "oportunidades_perdidas": ["<oportunidad1>", "<oportunidad2>"],
-  "recomendacion_principal": "<una sola recomendación clave para la próxima práctica>"
+  "recomendacion_principal": "<una sola recomendación clave y accionable para la próxima práctica>"
 }}
 """
 
@@ -86,9 +89,11 @@ Genera un informe de coaching completo en el siguiente formato JSON exacto:
 def analyze_session(
     scenario_text: str,
     turns: list[tuple[str, str]],  # [(role, text), ...]
+    negotiator_info: Optional[dict] = None,
+    avatar_name: str = "la contraparte",
 ) -> dict:
     """
-    Analiza la transcripción de una sesión de negociación y devuelve
+    Analiza la transcripción de una sesión y devuelve
     un diccionario con el informe de coaching generado por Claude.
 
     Usa extended thinking para un razonamiento profundo sobre el desempeño.
@@ -100,14 +105,28 @@ def analyze_session(
     # Formatear la transcripción
     transcript_lines = []
     for role, text in turns:
-        label = "USUARIO" if role == "user" else "PERSONAJE (IA)"
+        label = "USUARIO" if role == "user" else f"CONTRAPARTE ({avatar_name})"
         transcript_lines.append(f"[{label}]: {text}")
     transcript = "\n\n".join(transcript_lines)
 
     persona_brief = get_persona_system_prompt()
 
+    user_profile_lines = []
+    if negotiator_info:
+        if negotiator_info.get("name"):
+            user_profile_lines.append(f"- Nombre: {negotiator_info['name']}")
+        if negotiator_info.get("role"):
+            user_profile_lines.append(f"- Rol / Cargo: {negotiator_info['role']}")
+        if negotiator_info.get("organization"):
+            user_profile_lines.append(f"- Organización: {negotiator_info['organization']}")
+        if negotiator_info.get("objectives"):
+            user_profile_lines.append(f"- Objetivos planteados: {negotiator_info['objectives']}")
+    negotiator_profile_str = "\n".join(user_profile_lines) if user_profile_lines else "No especificado."
+
     prompt = COACHING_USER_TEMPLATE.format(
         scenario_text=scenario_text,
+        negotiator_profile=negotiator_profile_str,
+        avatar_name=avatar_name,
         persona_brief=persona_brief,
         transcript=transcript,
     )

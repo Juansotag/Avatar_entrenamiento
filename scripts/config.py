@@ -1,6 +1,6 @@
 import os
 import argparse
-from datetime import datetime
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 # Cargar variables de entorno desde .env si existe
@@ -24,15 +24,17 @@ class Config:
             default=None,
             help="Nombre de usuario / handle de Twitter (ej. @SenadoGovCo o SenadoGovCo) para extraer publicaciones."
         )
+        today = datetime.now().strftime("%Y-%m-%d")
+        default_start = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
         self.parser.add_argument(
             "--start-date", "-s",
-            required=True,
-            help="Fecha de inicio en formato YYYY-MM-DD."
+            default=default_start,
+            help=f"Fecha de inicio en formato YYYY-MM-DD (por defecto: {default_start})."
         )
         self.parser.add_argument(
             "--end-date", "-e",
-            required=True,
-            help="Fecha de fin en formato YYYY-MM-DD."
+            default=today,
+            help=f"Fecha de fin en formato YYYY-MM-DD (por defecto: hoy, {today})."
         )
         self.parser.add_argument(
             "--output-dir", "-o",

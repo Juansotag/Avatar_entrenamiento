@@ -7,7 +7,7 @@ from sqlmodel import select
 
 from app.config import get_settings
 from app.db import get_db, engine
-from app.models import Case, NegotiationSession, NonverbalSnapshot, Turn
+from app.models import Case, NegotiationSession, NegotiatorProfile, NonverbalSnapshot, Turn
 from app.schemas import (
     CaseRead,
     NonverbalBatchIn,
@@ -49,6 +49,20 @@ def _synthesize_or_none(text: str, session_id: int, turn_index: int) -> Optional
         return None
 
 
+def _get_negotiator_info(db: DBSession) -> Optional[dict]:
+    """Obtiene los datos del perfil del negociante si están diligenciados."""
+    profile = db.exec(select(NegotiatorProfile)).first()
+    if not profile:
+        return None
+    info = {
+        "name": (profile.name or "").strip(),
+        "role": (profile.role or "").strip(),
+        "organization": (profile.organization or "").strip(),
+        "objectives": (profile.objectives or "").strip(),
+    }
+    return info if any(info.values()) else None
+
+
 @router.post("", response_model=SessionStartResponse)
 def start_session(case_id: int, db: DBSession = Depends(get_db)) -> SessionStartResponse:
     case = db.get(Case, case_id)
@@ -60,17 +74,20 @@ def start_session(case_id: int, db: DBSession = Depends(get_db)) -> SessionStart
     db.commit()
     db.refresh(session)
 
-    # Capturar variables del caso y cerrar el session db para liberar bloqueos
+    # Capturar variables del caso y perfil del usuario antes de cerrar el session db
     scenario_text = case.scenario_text
     persona_notes = case.persona_notes
     avatar_name = case.avatar_name
     session_id = session.id
     duration_seconds = case.duration_seconds or settings.session_duration_seconds
     case_read = CaseRead.model_validate(case)
+    negotiator_info = _get_negotiator_info(db)
     db.close()
 
     # Llamadas a APIs externas
-    opening_text = llm.generate_opening_line(scenario_text, persona_notes, avatar_name)
+    opening_text = llm.generate_opening_line(
+        scenario_text, persona_notes, avatar_name, negotiator_info=negotiator_info
+    )
     audio_path = _synthesize_or_none(opening_text, session_id, 0)
 
     # Registrar el turno en la DB en una transacción corta
@@ -135,6 +152,7 @@ def submit_turn(
     stored_turns = [(t.role, t.text) for t in prior_turns]
     
     # Cerrar la sesión para liberar bloqueos antes del procesamiento lento
+    negotiator_info = _get_negotiator_info(db)
     db.close()
 
     # 1. Procesar transcripción si es necesario (llamada de red larga a Whisper)
@@ -172,25 +190,33 @@ def submit_turn(
     if remaining_seconds is not None:
         mins = remaining_seconds // 60
         secs = remaining_seconds % 60
-        time_context = f"\n\n[Nota del sistema: Quedan {mins} minutos y {secs} segundos para finalizar la negociación.]"
+        time_context = f"\n\n[Nota del sistema: Quedan {mins} minutos y {secs} segundos para finalizar la conversación.]"
         
     if request_extension:
         mins = (remaining_seconds or 0) // 60
         secs = (remaining_seconds or 0) % 60
         time_context = (time_context or "") + (
-            f"\n\n[INSTRUCCIÓN DE SISTEMA: El usuario está solicitando formalmente una extensión del tiempo de negociación. "
-            f"Evalúa el desarrollo de la negociación hasta este momento (si el usuario ha sido respetuoso, ha presentado "
-            f"propuestas viables, cifras lógicas y ha mostrado interés real en cerrar un acuerdo cooperativo):"
-            f"\n1. Si consideras que el usuario ha negociado mal, ha sido evasivo, hostil o irrespetuoso, rechaza la extensión (0 segundos adicionales)."
-            f"\n2. Si la negociación va bien, puedes otorgarle un minuto adicional (60 segundos)."
-            f"\n3. Si quedan 30 segundos o menos para terminar la reunión (tiempo restante actual: {mins} min {secs} seg) y el usuario "
-            f"ha hecho un trabajo excelente y constructivo, puedes ser generoso e iniciar un cierre exitoso concediendo hasta 5 minutos adicionales (300 segundos)."
-            f"\n\nResponde en tu rol y estilo habituales de {avatar_name}. Al final de tu respuesta, de forma obligatoria, "
+            f"\n\n[INSTRUCCIÓN DE SISTEMA: El interlocutor está solicitando formalmente una extensión del tiempo de la conversación/reunión. "
+            f"Evalúa el desarrollo de la interacción hasta este momento (si el interlocutor ha sido constructivo, empático, respetuoso "
+            f"y ha presentado argumentos, propuestas o inquietudes lógicas acordes a la situación):"
+            f"\n1. Si consideras que el interlocutor se ha desempeñado mal, ha sido evasivo, hostil, negligente o irrespetuoso, rechaza la extensión (0 segundos adicionales)."
+            f"\n2. Si la interacción va por buen camino o requiere un poco más de tiempo, puedes otorgarle un minuto adicional (60 segundos)."
+            f"\n3. Si quedan 30 segundos o menos para terminar la reunión (tiempo restante actual: {mins} min {secs} seg) y el interlocutor "
+            f"ha hecho un trabajo excelente y constructivo, puedes conceder hasta 5 minutos adicionales (300 segundos)."
+            f"\n\nResponde en tu rol y estilo de {avatar_name}. Al final de tu respuesta, de forma obligatoria, "
             f"escribe el tag XML con el valor que hayas decidido: <granted_seconds>NUM_SEGUNDOS</granted_seconds> "
             f"(donde NUM_SEGUNDOS debe ser un entero como 0, 60 o hasta 300).]"
         )
 
-    persona_text = llm.generate_reply(scenario_text, persona_notes, stored_turns, user_text, avatar_name, time_context=time_context)
+    persona_text = llm.generate_reply(
+        scenario_text,
+        persona_notes,
+        stored_turns,
+        user_text,
+        avatar_name,
+        time_context=time_context,
+        negotiator_info=negotiator_info,
+    )
     
     # Parsear y limpiar granted_seconds
     import re
@@ -314,8 +340,10 @@ def end_session(session_id: int, db: DBSession = Depends(get_db)) -> SessionEndR
     # 2. Generar informe de coaching con Claude (extended thinking)
     case = db.get(Case, session.case_id)
     scenario_text = case.scenario_text if case else ""
+    avatar_name = case.avatar_name if case else "la contraparte"
     all_turns = list(db.exec(select(Turn).where(Turn.session_id == session_id).order_by(Turn.turn_index)))
     turns_for_coach = [(t.role, t.text) for t in all_turns]
+    negotiator_info = _get_negotiator_info(db)
 
     # Cerrar la sesión de DB para liberar bloqueos durante la llamada larga de Claude Coaching
     db.close()
@@ -325,6 +353,8 @@ def end_session(session_id: int, db: DBSession = Depends(get_db)) -> SessionEndR
         coaching_data = coach.analyze_session(
             scenario_text=scenario_text,
             turns=turns_for_coach,
+            negotiator_info=negotiator_info,
+            avatar_name=avatar_name,
         )
         import json
         coaching_report_json = json.dumps(coaching_data, ensure_ascii=False)

@@ -121,7 +121,7 @@ class CoachingReport(BaseModel):
 
 class SessionReviewResponse(BaseModel):
     session_id: int
-    case: CaseRead
+    case: Optional[CaseRead] = None
     status: str
     started_at: datetime
     ended_at: Optional[datetime]

@@ -271,9 +271,9 @@ async function load() {
     return;
   }
   const data = await res.json();
-  avatarName = data.case.avatar_name || "El Mandatario";
-  document.getElementById("case-title").textContent = data.case.title;
-  document.getElementById("scenario-text").textContent = data.case.scenario_text;
+  avatarName = (data.case && data.case.avatar_name) || "Contraparte";
+  document.getElementById("case-title").textContent = data.case ? data.case.title : "(Caso eliminado)";
+  document.getElementById("scenario-text").textContent = data.case ? data.case.scenario_text : "";
   const started = new Date(data.started_at).toLocaleString("es-CO");
   document.getElementById("session-meta").textContent = `Iniciada: ${started}, estado: ${data.status}`;
 

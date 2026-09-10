@@ -1,6 +1,12 @@
-# Avatar de Entrenamiento en Negociación
+# Simulador y Avatar de Entrenamiento en Negociaciones y Conversaciones Críticas
 
-Un simulador de negociación empresa-Estado donde un avatar de IA (impulsado por Claude) actúa como mandatario político. Al finalizar cada sesión, Claude genera un **informe de coaching** detallado sobre el desempeño del negociador.
+Un simulador interactivo multi-escenario donde un avatar de IA (impulsado por Claude) actúa como contraparte adaptativa. Permite entrenar cualquier clase de negociación o conversación difícil:
+- **Discusión y concertación pública o política** (ej. gremios vs. mandatarios).
+- **Entregas de noticias complejas o de alta sensibilidad** (ej. noticias médicas a pacientes o familiares).
+- **Sesiones de retroalimentación crítica** (ej. feedback de desempeño a estudiantes o colaboradores).
+- **Negociaciones comerciales y estratégicas** (ej. clientes, proveedores, resolución de conflictos).
+
+Al finalizar cada sesión, Claude genera un **informe de coaching** detallado y personalizado sobre el desempeño comunicativo y estratégico del negociador.
 
 ---
 
@@ -10,40 +16,42 @@ Un simulador de negociación empresa-Estado donde un avatar de IA (impulsado por
 Avatar/
 ├── app/                         # Producto principal: Avatar de Entrenamiento
 │   ├── data/
-│   │   ├── persona_brief.md     # Perfil y reglas del personaje político (avatar)
-│   │   └── policy_snippets/     # Base de conocimiento del avatar (RAG)
+│   │   ├── persona_brief.md     # Perfil, estilo y reglas de la contraparte (avatar)
+│   │   └── policy_snippets/     # Base de conocimiento de referencia (RAG)
 │   ├── routers/
-│   │   ├── cases.py             # CRUD de casos de negociación
-│   │   ├── sessions.py          # Lógica de sesión (turnos, audio, cierre)
+│   │   ├── cases.py             # CRUD de casos y escenarios
+│   │   ├── profiles.py          # Gestión de perfil del negociante y contraparte
+│   │   ├── sessions.py          # Lógica de sesión (turnos, audio, cámara, extensiones)
 │   │   └── review.py            # Revisión post-sesión + informe de coaching
 │   ├── services/
-│   │   ├── llm.py               # Claude — cerebro del avatar (con streaming)
+│   │   ├── llm.py               # Claude — cerebro adaptativo del avatar (con streaming)
 │   │   ├── coach.py             # Claude — análisis de coaching post-sesión
-│   │   ├── rag.py               # Recuperación de contexto de política pública
-│   │   ├── persona.py           # Carga del perfil del personaje
+│   │   ├── rag.py               # Recuperación de contexto de referencia
+│   │   ├── persona.py           # Carga y gestión dinámica del perfil del avatar
 │   │   ├── stt.py               # Transcripción de audio (OpenAI Whisper)
-│   │   └── tts.py               # Voz del avatar (ElevenLabs)
+│   │   └── tts.py               # Voz del avatar (OpenAI TTS)
 │   ├── config.py                # Configuración del servidor
-│   ├── db.py                    # Base de datos SQLite
-│   ├── models.py                # Modelos de datos
+│   ├── db.py                    # Base de datos SQLite / PostgreSQL
+│   ├── models.py                # Modelos de datos SQLModel
 │   ├── schemas.py               # Esquemas Pydantic
 │   └── main.py                  # Servidor FastAPI
 ├── frontend/                    # Interfaz web
-│   ├── index.html               # Inicio: crear/seleccionar caso
-│   ├── session.html             # Sesión de negociación en vivo
+│   ├── index.html               # Inicio: crear/seleccionar escenario
+│   ├── profiles.html            # Configuración de perfil de usuario y avatar
+│   ├── session.html             # Sesión de simulación en vivo (video/audio)
 │   ├── review.html              # Revisión post-sesión con informe de coaching
-│   └── static/                 # CSS y JS
-├── scripts/                     # Herramientas opcionales de enriquecimiento del corpus
+│   └── static/                 # CSS, fuentes y JavaScript (MediaPipe, Chart.js)
+├── scripts/                     # Herramientas opcionales de extracción de corpus
 │   ├── main.py                  # CLI unificada de extracción
 │   ├── youtube_extractor.py     # Extrae subtítulos de YouTube
 │   ├── twitter_scraper.py       # Extrae tweets con Playwright
-│   ├── transcript_corrector.py  # Corrige subtítulos con IA
+│   ├── transcript_corrector.py  # Corrige subtítulos con IA (Gemini)
 │   ├── rag_formatter.py         # Formatea a Markdown para el RAG
 │   └── config.py                # Configuración de los scripts de extracción
 ├── .env                         # Variables de entorno (no commitear)
 ├── .env.example                 # Plantilla de configuración
 ├── requirements.txt             # Dependencias
-└── storage.db                   # Base de datos SQLite
+└── storage.db                   # Base de datos local SQLite
 ```
 
 ---
@@ -52,20 +60,17 @@ Avatar/
 
 ### El Avatar de Entrenamiento
 
-1. **Creas un caso** desde la pantalla de inicio: defines el escenario de negociación (quién eres, qué quieres del mandatario).
-2. **Inicias la sesión**: el avatar (Claude, en rol de El Mandatario) abre la reunión con una frase de apertura.
-3. **Negocias**: envías audio o texto, el avatar responde en personaje, con voz opcional via ElevenLabs.
-4. **Finalizas la sesión**: Claude analiza la transcripción completa con *extended thinking* y genera un **informe de coaching** que incluye:
+1. **Configuras tu perfil de negociador**: define tu nombre, cargo, organización y objetivos en la pestaña *Perfiles*. El avatar y el coach usarán esta información para calibrar la interacción.
+2. **Creas o seleccionas un caso**: defines el escenario, los objetivos en juego, el nombre de la contraparte y el tiempo de negociación.
+3. **Inicias la sesión**: el avatar abre la interacción en personaje de forma coherente con la situación planteada.
+4. **Interactúas**: envías audio o texto. El avatar responde en personaje con voz sintetizada (OpenAI TTS), evaluando tus argumentos.
+5. **Finalizas la sesión**: Claude analiza la transcripción y tus objetivos mediante *extended thinking* y genera un **informe de coaching** que incluye:
    - **Puntaje global** (0–100)
-   - **Resultado final**: acuerdo parcial, aplazamiento o rechazo
+   - **Resultado final** (acuerdo parcial, aplazamiento, rechazo, acuerdo exitoso, etc.)
    - **Fortalezas** con citas textuales de lo que dijiste
    - **Áreas de mejora** con citas y sugerencias de cómo reformularlo
    - **Tácticas efectivas** y **oportunidades perdidas**
    - **Recomendación principal** para tu próxima práctica
-
-### El RAG (Base de conocimiento del avatar)
-
-El avatar conoce los temas de política pública que están en `app/data/policy_snippets/*.md`. Para enriquecer su conocimiento puedes agregar archivos Markdown manualmente o usar los **scripts de extracción**.
 
 ---
 
@@ -74,15 +79,17 @@ El avatar conoce los temas de política pública que están en `app/data/policy_
 ### Variables de entorno (`.env`)
 
 ```env
-# Obligatorio para el avatar
+# Obligatorio para el avatar y el coaching (Anthropic Claude)
 ANTHROPIC_API_KEY=tu_clave_aqui
 
-# Opcional: voz del avatar
-ELEVENLABS_API_KEY=tu_clave_aqui
-ELEVENLABS_VOICE_ID=pNInz6obpgDQGcFmaJgB
-
-# Necesario si usas entrada de voz (STT)
+# Necesario para entrada de voz (Whisper) y voz de la contraparte (TTS)
 OPENAI_API_KEY=tu_clave_aqui
+
+# Opcional: Voz del avatar para TTS (alloy, echo, fable, onyx, nova, shimmer)
+OPENAI_TTS_VOICE=onyx
+
+# Opcional: Modelo de Claude (por defecto: claude-opus-4-8)
+MODEL_NAME=claude-opus-4-8
 
 # Opcional: para los scripts de extracción de YouTube/Twitter
 GEMINI_API_KEY=tu_clave_aqui

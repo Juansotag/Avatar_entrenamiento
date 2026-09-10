@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     openai_tts_voice: str = "onyx"
 
     # Modelo principal del avatar de negociación. Nunca degradar sin pedido explícito.
-    model_name: str = "claude-opus-4-5"
+    model_name: str = "claude-opus-4-8"
 
     # Presupuesto de tokens de pensamiento extendido para el análisis de coaching.
     # 8000 es suficiente para sesiones de 5 min; aumentar para análisis más profundos.
