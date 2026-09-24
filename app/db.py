@@ -4,6 +4,7 @@ from collections.abc import Generator
 from sqlmodel import Session as DBSession
 from sqlmodel import SQLModel, create_engine, select
 
+import app.models  # noqa: F401 - Registra Case, NegotiationSession, etc. en SQLModel.metadata
 from app.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -90,34 +91,35 @@ def init_db() -> None:
 
 def _seed_default_case() -> None:
     """Inserta los 10 casos representativos (5 públicos, 5 privados) y sesiones sintéticas si no existen."""
-    from app.models import Case
-    with DBSession(engine) as db:
-        if db.exec(select(Case)).first() is not None:
-            return
     try:
+        from app.models import Case
+        with DBSession(engine) as db:
+            if db.exec(select(Case)).first() is not None:
+                return
         from scripts.seed_10_cases_and_sessions import seed_all_cases_and_sessions
         seed_all_cases_and_sessions(purge_existing=False)
     except Exception as e:
         logger.warning("No se pudo ejecutar la siembra de los 10 casos: %s", e)
 
 
-
 def _seed_default_negotiator_profile() -> None:
     """Crea un perfil de negociante vacío si no existe ninguno."""
-    from app.models import NegotiatorProfile  # importación local para evitar ciclos
-
-    with DBSession(engine) as db:
-        existing = db.exec(select(NegotiatorProfile)).first()
-        if existing is not None:
-            return
-        profile = NegotiatorProfile(
-            name="",
-            role="",
-            organization="",
-            objectives="",
-        )
-        db.add(profile)
-        db.commit()
+    try:
+        from app.models import NegotiatorProfile
+        with DBSession(engine) as db:
+            existing = db.exec(select(NegotiatorProfile)).first()
+            if existing is not None:
+                return
+            profile = NegotiatorProfile(
+                name="",
+                role="",
+                organization="",
+                objectives="",
+            )
+            db.add(profile)
+            db.commit()
+    except Exception as e:
+        logger.warning("No se pudo sembrar el perfil de negociante por defecto: %s", e)
 
 
 def get_db() -> Generator[DBSession, None, None]:
