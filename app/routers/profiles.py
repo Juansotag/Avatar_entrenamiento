@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -97,7 +97,7 @@ def update_negotiator_profile(
         profile.organization = payload.organization
     if payload.objectives is not None:
         profile.objectives = payload.objectives
-    profile.updated_at = datetime.utcnow()
+    profile.updated_at = datetime.now(timezone.utc)
     db.add(profile)
     db.commit()
     db.refresh(profile)

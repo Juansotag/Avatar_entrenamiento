@@ -360,7 +360,7 @@ def compute_nonverbal_summary(db: DBSession, session_id: int) -> NonverbalSummar
 
 @router.post("/{session_id}/end", response_model=SessionEndResponse)
 def end_session(session_id: int, db: DBSession = Depends(get_db)) -> SessionEndResponse:
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     session = db.get(NegotiationSession, session_id)
     if session is None:
@@ -404,7 +404,7 @@ def end_session(session_id: int, db: DBSession = Depends(get_db)) -> SessionEndR
             if coaching_report_json is not None:
                 sess.coaching_report_json = coaching_report_json
             sess.status = "completed"
-            sess.ended_at = datetime.utcnow()
+            sess.ended_at = datetime.now(timezone.utc)
             write_db.add(sess)
             write_db.commit()
             status = sess.status

@@ -1,7 +1,7 @@
 import sys
 sys.path.insert(0, ".")
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import random
 from sqlmodel import Session as DBSession, select
 
@@ -991,7 +991,7 @@ def seed_all_cases_and_sessions(purge_existing: bool = False):
             ).first()
 
             if not existing_session:
-                start_time = datetime.utcnow() - timedelta(days=random.randint(1, 15), hours=random.randint(1, 10))
+                start_time = datetime.now(timezone.utc) - timedelta(days=random.randint(1, 15), hours=random.randint(1, 10))
                 end_time = start_time + timedelta(seconds=case.duration_seconds)
                 
                 coaching_json = json.dumps(item["coaching"], ensure_ascii=False)

@@ -143,7 +143,7 @@ def analyze_session(
                 model=coaching_model,
                 max_tokens=16000,
                 thinking={
-                    "type": "enabled",
+                    "type": "adaptive",
                     "budget_tokens": settings.coaching_thinking_budget,
                 },
                 system=COACHING_SYSTEM_PROMPT,

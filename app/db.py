@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Generator
 
 from sqlmodel import Session as DBSession
@@ -5,13 +6,21 @@ from sqlmodel import SQLModel, create_engine, select
 
 from app.config import get_settings
 
+logger = logging.getLogger(__name__)
+
 settings = get_settings()
 
 engine_args = {}
-if settings.database_url.startswith("sqlite"):
-    engine_args["connect_args"] = {"check_same_thread": False}
+db_url = settings.database_url
 
-engine = create_engine(settings.database_url, **engine_args)
+if db_url.startswith("sqlite"):
+    engine_args["connect_args"] = {"check_same_thread": False}
+elif db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
+elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+"):
+    db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+
+engine = create_engine(db_url, **engine_args)
 
 _DEFAULT_CASE_TITLE = "Fondo parafiscal ganadero — Llanos Orientales"
 
@@ -46,30 +55,35 @@ def init_db() -> None:
         with DBSession(engine) as db:
             db.exec(text("PRAGMA journal_mode=WAL;"))
             db.commit()
-    # Migrar la base de datos de manera dinámica si las nuevas columnas no existen
-    with engine.begin() as conn:
-        for col, col_type in [
-            ("avatar_name", "TEXT DEFAULT 'Contraparte'"),
-            ("duration_seconds", "INTEGER DEFAULT 300"),
-            ("user_name", "TEXT DEFAULT ''"),
-            ("user_role", "TEXT DEFAULT ''"),
-            ("user_organization", "TEXT DEFAULT ''"),
-            ("user_objectives", "TEXT DEFAULT ''"),
-            ("avatar_profile", "TEXT"),
-            ("avatar_tone", "TEXT"),
-            ("avatar_rules", "TEXT"),
-            ("avatar_voice", "TEXT DEFAULT 'onyx'"),
-        ]:
-            try:
-                conn.execute(text(f'ALTER TABLE "case" ADD COLUMN {col} {col_type};'))
-            except Exception:
-                pass
-        for col in ["happiness", "anger", "sadness", "fear"]:
-            try:
-                conn.execute(text(f'ALTER TABLE "nonverbalsnapshot" ADD COLUMN {col} FLOAT;'))
-            except Exception:
-                pass
+
     SQLModel.metadata.create_all(engine)
+
+    # Migrar la base de datos de manera dinámica si las nuevas columnas no existen
+    for col, col_type in [
+        ("avatar_name", "TEXT DEFAULT 'Contraparte'"),
+        ("duration_seconds", "INTEGER DEFAULT 300"),
+        ("user_name", "TEXT DEFAULT ''"),
+        ("user_role", "TEXT DEFAULT ''"),
+        ("user_organization", "TEXT DEFAULT ''"),
+        ("user_objectives", "TEXT DEFAULT ''"),
+        ("avatar_profile", "TEXT"),
+        ("avatar_tone", "TEXT"),
+        ("avatar_rules", "TEXT"),
+        ("avatar_voice", "TEXT DEFAULT 'onyx'"),
+    ]:
+        try:
+            with engine.begin() as conn:
+                conn.execute(text(f'ALTER TABLE "case" ADD COLUMN {col} {col_type};'))
+        except Exception:
+            pass
+
+    for col in ["happiness", "anger", "sadness", "fear"]:
+        try:
+            with engine.begin() as conn:
+                conn.execute(text(f'ALTER TABLE "nonverbalsnapshot" ADD COLUMN {col} FLOAT;'))
+        except Exception:
+            pass
+
     _seed_default_case()
     _seed_default_negotiator_profile()
 
